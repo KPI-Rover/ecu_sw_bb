@@ -1,1 +1,1 @@
-# ecu_sw_bb
+# KPI Rover chassi controller based on Beaglebone Blue
