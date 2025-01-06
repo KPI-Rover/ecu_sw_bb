@@ -87,15 +87,15 @@ connmanctl> quit
 ```
 Now you can use the wifi connection to establish an ssh connection.
 
-### Upgrade installed packages
+### Upgrade and install required packages
 ```
 sudo apt update
+sudo apt install -y locales
+sudo dpkg-reconfigure locales # Choose a locale en_US.UTF-8 = English, United States, UTF8
 sudo apt upgrade -y
-```
-
-### Install required packages
-```
-sudo apt install build-essential
+sudo apt install build-essential -y
+sudo apt-get install -y cpufrequtils
+sudo sed -i 's/GOVERNOR="ondemand"/GOVERNOR="performance"/g' /etc/init.d/cpufrequtils
 ```
 
 ### Install librobotcontrol
