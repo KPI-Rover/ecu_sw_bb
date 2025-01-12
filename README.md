@@ -2,6 +2,9 @@
 
 For the first time, the Beaglebone board should be prepared. Please refer to the section [Preparing Beaglebone Blue Board](#Preparing-Beaglebone-Blue-Board).
 
+## Communication between BBB and ROS2
+![BBB2ROS](./docs/BBB2ROS.png)
+
 ## Download Source Code
 ```
 git clone git@github.com:KPI-Rover/ecu_sw_bb.git
