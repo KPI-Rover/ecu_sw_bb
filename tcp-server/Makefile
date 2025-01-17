@@ -4,8 +4,8 @@ TARGET := server
 
 build: $(TARGET)
 
-$(TARGET): server.cpp
-	g++ server.cpp -o $(TARGET) $(LIBRARIES)
+$(TARGET): server.cpp TCPServerReceiver.cpp
+	g++ $^ -o $(TARGET) $(LIBRARIES)
 
 clean: $(TARGET)
 
