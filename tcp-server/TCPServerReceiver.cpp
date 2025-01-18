@@ -44,6 +44,10 @@ int TCPServer::init() {
 
 }
 
+int TCPServer::get_counter() {
+	return  (timeStop * 1000000) / timerPrecision;
+}
+
 void* TCPServer::serverThreadFunc() {
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);	
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);		
@@ -61,12 +65,16 @@ void* TCPServer::serverThreadFunc() {
 
 		if (client_sockfd == -1) {
 			perror("Error: accept()");
-			break;
+			continue;
 		}
 		while (1) {
 			n_recved = recv(client_sockfd, buffer, BUFFERSIZE, 0);
 			if (n_recved > 0) {
-				cout << "server get message: " << buffer << endl;	
+				cout << "server get message: " << buffer << endl;
+				pthread_mutex_lock(&timer_mutex);
+				counter = get_counter();
+				
+				pthread_mutex_unlock(&timer_mutex);
 				/*
 				 Processing data, calling processor functions
 
@@ -78,7 +86,7 @@ void* TCPServer::serverThreadFunc() {
 
 			} else if (n_recved < 0) {
 				perror("recv()");
-				break;
+				continue;
 			}
 		}
 		close(client_sockfd);
@@ -87,14 +95,47 @@ void* TCPServer::serverThreadFunc() {
 	return NULL;
 }
 
-void TCPServer::start() {
+
+
+
+void* TCPServer::timerThreadFunc() {
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);	
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);
+
+	while (1) {
+		if (counter > 0) {
+			usleep(100000);
+			pthread_mutex_lock(&timer_mutex);
+			counter--;
+
+			pthread_mutex_unlock(&timer_mutex);
+		} else if (counter == 0) {
+			// command to stop all motors
+			usleep(1000000); // just every second reminder  
+			cout << "MOTORS STOP!!" << endl;
+				
+		}
+			
+	}
 	
+
+	return NULL;	
+}
+
+
+
+void TCPServer::start() {
+
 	if (pthread_create(&serverThread_id, nullptr, &serverThreadFuncWrapper, this) != 0){
 		perror("Error: pthread_create()");
 		exit(EXIT_FAILURE);
 	}
+		
+	if (pthread_create(&timerThread_id, nullptr, &timerThreadFuncWrapper, this) != 0){
+		perror("Error: pthread_create()");
+		exit(EXIT_FAILURE);
+	}
 	
-
 
 }
 
@@ -104,7 +145,14 @@ void TCPServer::destroy() {
 		perror("Error: pthread_cancel()");
 		exit(EXIT_FAILURE);
 	}
+	
+	if (pthread_cancel(timerThread_id) != 0) {
+		perror("Error: pthread_cancel()");
+		exit(EXIT_FAILURE);
+	}
+	
 	delete[] server_address;
 	pthread_join(serverThread_id, nullptr);
+	pthread_join(timerThread_id, nullptr);
 	close(sockfd);
 }

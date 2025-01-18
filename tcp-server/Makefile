@@ -7,6 +7,6 @@ build: $(TARGET)
 $(TARGET): server.cpp TCPServerReceiver.cpp
 	g++ $^ -o $(TARGET) $(LIBRARIES)
 
-clean: $(TARGET)
+clean: 
 
 	rm -rf $(TARGET)
