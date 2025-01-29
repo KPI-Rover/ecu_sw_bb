@@ -1,18 +1,27 @@
 cmake_minimum_required(VERSION 3.10)
+project(tcp-server) #temporary
 
-# Название проекта
-project(ServerApp)
+#set(PROJECT_NAME main)
+set(CMAKE_C_COMPILER /usr/bin/arm-linux-gnueabihf-gcc-8)
+set(CMAKE_CXX_COMPILER /usr/bin/arm-linux-gnueabihf-g++-8)
 
-# Устанавливаем стандарт C++
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Вказуємо вихідний файл
-set(SOURCES server.cpp)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+	
+set(SOURCE_FILES
+	server.cpp
+	TCPServerReceiver.cpp
+)
 
-# Створюємо виконуваний файл
-add_executable(server ${SOURCES})
+set(HEADER_FILES
+	TCPServerReceiver.h		
+)
 
-# Лінкування бібліотеки pthread.h
-target_link_libraries(server pthread)
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
+
+target_link_libraries(${PROJECT_NAME} Threads::Threads)
+
+
 

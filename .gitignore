@@ -6,3 +6,6 @@ cmake_install.sh
 bin/
 CMakeFiles/
 
+tcp-server/build/*
+build/*
+tcp-server/server
