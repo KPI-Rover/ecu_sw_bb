@@ -13,8 +13,12 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <ifaddrs.h>
+#include <netdb.h>
 
 using namespace std;
+
+char* get_primary_ip();
 
 class TCPServer {
 public:
