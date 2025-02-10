@@ -1,6 +1,7 @@
 #ifndef TCPSERVERRECEIVER_H
 #define TCPSERVERRECEIVER_H
 
+#include "config.h"
 #include <cstring>
 #include <iostream>
 #include <unistd.h>
@@ -19,6 +20,7 @@
 using namespace std;
 
 char* get_primary_ip();
+
 
 class TCPServer {
 public:
@@ -55,10 +57,7 @@ private:
 	pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
 	pthread_t serverThread_id, timerThread_id;
 	int sockfd;
-	const int BUFFERSIZE = 1024;
-	const int NUMSLOTS = 5;
-	const int timeStop = 1; // in seconds
-	const int timerPrecision = 100000; // 100 miliseconds in microseconds	
+
 
 
 	int get_counter();

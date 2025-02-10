@@ -10,14 +10,16 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
+
+include_directories(${CMAKE_SOURCE_DIR}/include)
 	
 set(SOURCE_FILES
-	server.cpp
-	TCPServerReceiver.cpp
+	src/server.cpp
+	src/TCPServerReceiver.cpp
 )
 
 set(HEADER_FILES
-	TCPServerReceiver.h		
+	include/TCPServerReceiver.h		
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})

@@ -1,6 +1,11 @@
 #include "TCPServerReceiver.h"
+#include "config.h"
 
 char* get_primary_ip() {
+	/*
+	 	Automatically finding IP adress for hosting server
+		returns string of IP-address
+	 */
         struct ifaddrs *ifaddr, *ifa;
         int family, s;
         char *host = new char[NI_MAXHOST];
@@ -36,49 +41,53 @@ char* get_primary_ip() {
 
 
 int TCPServer::init() {
-	//int sockfd, client_sockfd;
-	struct sockaddr_in serv_addr;
-	int reuseaddr = 1;
+		/*
+			Fucntions responsible for initialising new socket (TCP socket)
+		 */
 
-	//cout << "Hello , start of tcp server" << endl;
+		//int sockfd, client_sockfd;
+		struct sockaddr_in serv_addr;
+		int reuseaddr = 1;
 
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		//cout << "Hello , start of tcp server" << endl;
 
-	if (sockfd < 0) {
-		perror("Error: Socket()");
-		return -1;
-	}
+		sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, 
-				(void *) &reuseaddr, (socklen_t) sizeof(int)) != 0) {
-		perror("setsockopt()");
-		return -1;
-	}
+		if (sockfd < 0) {
+			perror("Error: Socket()");
+			return -1;
+		}
 
-	memset(&serv_addr, 0, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = inet_addr(server_address);
-       	serv_addr.sin_port = htons(server_portnum);
-	
-	
-	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) != 0) {
-                 perror("bind()");
-                 return -1;
-         
-	}
+		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, 
+					(void *) &reuseaddr, (socklen_t) sizeof(int)) != 0) {
+			perror("setsockopt()");
+			return -1;
+		}
 
-	if (listen(sockfd, NUMSLOTS) != 0) {
-		perror("listen");
-		return -1;
-	}
+		memset(&serv_addr, 0, sizeof(serv_addr));
+		serv_addr.sin_family = AF_INET;
+		serv_addr.sin_addr.s_addr = inet_addr(server_address);
+		serv_addr.sin_port = htons(server_portnum);
+		
+		
+		if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) != 0) {
+					perror("bind()");
+					return -1;
+			
+		}
 
-	cout << "Started server on " << server_address << ":" << server_portnum << endl;
-	return sockfd;
+		if (listen(sockfd, NUMSLOTS) != 0) {
+			perror("listen");
+			return -1;
+		}
+
+		cout << "Started server on " << server_address << ":" << server_portnum << endl;
+		return sockfd;
 
 }
 
 int TCPServer::get_counter() {
-	return  (timeStop * 1000000) / timerPrecision;
+	return  (TIMESTOP * 1000000) / TIMERPRECISION;
 }
 
 void* TCPServer::serverThreadFunc() {
@@ -94,14 +103,14 @@ void* TCPServer::serverThreadFunc() {
 	
 
 	while (1) {
-		client_sockfd = accept(sockfd, nullptr, nullptr);
+		client_sockfd = accept(sockfd, nullptr, nullptr); // accept new connection
 
 		if (client_sockfd == -1) {
 			perror("Error: accept()");
 			continue;
 		}
 		while (1) {
-			n_recved = recv(client_sockfd, buffer, BUFFERSIZE, 0);
+			n_recved = recv(client_sockfd, buffer, BUFFERSIZE, 0); // receiving data from connestion
 			if (n_recved > 0) {
 				cout << "server get message: " << buffer << endl;
 				pthread_mutex_lock(&timer_mutex);
@@ -109,8 +118,8 @@ void* TCPServer::serverThreadFunc() {
 				
 				pthread_mutex_unlock(&timer_mutex);
 				/*
-				 Processing data, calling processor functions
-
+				 	Processing data, calling processor functions
+					
 
 				 */
 				if (strcmp(buffer, "end") == 0) {
@@ -135,6 +144,11 @@ void* TCPServer::timerThreadFunc() {
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);	
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);
 
+	/*
+		THread functions responsible for timer 1 s to stop motorrs
+		NEEED REFACTORING, (I have no time for this)
+	 */
+
 	while (1) {
 		if (counter > 0) {
 			usleep(100000);
@@ -158,13 +172,15 @@ void* TCPServer::timerThreadFunc() {
 
 
 void TCPServer::start() {
-
-	if (pthread_create(&serverThread_id, nullptr, &serverThreadFuncWrapper, this) != 0){
+	/* 
+	Functions responsible for starting threads for timer and listening for new messages
+	 */
+	if (pthread_create(&serverThread_id, nullptr, &serverThreadFuncWrapper, this) != 0){ // thread for listening new messages
 		perror("Error: pthread_create()");
 		exit(EXIT_FAILURE);
 	}
 		
-	if (pthread_create(&timerThread_id, nullptr, &timerThreadFuncWrapper, this) != 0){
+	if (pthread_create(&timerThread_id, nullptr, &timerThreadFuncWrapper, this) != 0){ // thread for timer
 		perror("Error: pthread_create()");
 		exit(EXIT_FAILURE);
 	}
@@ -174,18 +190,21 @@ void TCPServer::start() {
 
 
 void TCPServer::destroy() { 
-	if (pthread_cancel(serverThread_id) != 0) {
+	/* 
+	function  responsible for cleaning data and joining threads
+	 */
+	if (pthread_cancel(serverThread_id) != 0) { // canceling listening thread
 		perror("Error: pthread_cancel()");
 		exit(EXIT_FAILURE);
 	}
 	
-	if (pthread_cancel(timerThread_id) != 0) {
+	if (pthread_cancel(timerThread_id) != 0) { // cancleing timer thread
 		perror("Error: pthread_cancel()");
 		exit(EXIT_FAILURE);
 	}
 	
-	delete[] server_address;
-	pthread_join(serverThread_id, nullptr);
+	delete[] server_address; // cleaning data from heap
+	pthread_join(serverThread_id, nullptr); // joining threads
 	pthread_join(timerThread_id, nullptr);
-	close(sockfd);
+	close(sockfd); // closing socket
 }
