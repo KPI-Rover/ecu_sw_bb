@@ -110,28 +110,80 @@ void* TCPServer::serverThreadFunc() {
 			continue;
 		}
 		while (1) {
+			memset(buffer, 0, BUFFERSIZE);
+			/* receiving reauests */
 			n_recved = recv(client_sockfd, buffer, BUFFERSIZE, 0); // receiving data from connestion
 			if (n_recved > 0) {
-				cout << "server get message: " << buffer << endl;
+				/* locking mutex for updating timer */
 				pthread_mutex_lock(&timer_mutex);
 				counter = get_counter();
 				
 				pthread_mutex_unlock(&timer_mutex);
-				/*
-				 	Processing data, calling processor functions
-					
+				/* unlocking mutex above */
 
-				 */
+				uint8_t cmd_id = buffer[0];
+				cout << "server get command: " <<  static_cast<int>(cmd_id) << endl;
+				if (cmd_id == ID_SET_MOTOR_SPEED) {
+					uint8_t motor_id = buffer[1];
+					int32_t motor_rpm;
+					
+					memcpy(&motor_rpm, buffer+2, sizeof(int32_t));
+					motor_rpm = ntohl(motor_rpm);				
+					
+					cout << "motor to do " << static_cast<int>(motor_id) << endl;
+					cout << "motor new rpm " << static_cast<int>(motor_rpm) << endl;
+
+				} else if (cmd_id == ID_GET_API_VERSION) {
+					cout << "command get_api_version isn't ready yet" << endl;
+
+				} else if (cmd_id == ID_SET_ALL_MOTORS_SPEED) {
+					//cout << "command set_all_motors_speed is not ready yet" << endl;
+					int32_t motors_rpm_arr[4];
+
+					for (int i = 0; i < 4; i++) {
+						memcpy(motors_rpm_arr+i , buffer+1+i * sizeof(int32_t), sizeof(int32_t));
+						motors_rpm_arr[i] = ntohl(motors_rpm_arr[i]);
+
+					}
+
+					for (int i = 0; i < 4; i++) {
+						cout << "motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]) << endl;
+					}
+
+				} else if (cmd_id == ID_GET_ENCODER) {
+					cout << "command get encoder is not ready yet" << endl;
+					
+				} else if (cmd_id == ID_GET_ENCODER) {
+					cout << "command get encoder is not ready yet" << endl;
+				} else {
+					cout << "cannot recognize command" << endl;
+
+				}
+
+
+				/* Sending response */
+				memset(buffer, 0, BUFFERSIZE); // cleaning buffer
+				strcpy(buffer, "Response");
+
+				if (send(client_sockfd, buffer, 8, 0) < 0) {
+					// sending response
+					perror("send()");
+					break; 
+				}
+
+
+				// temporary if for ending of conneciton
 				if (strcmp(buffer, "end") == 0) {
 					stopThread = true;			
 				}
 
-			} else if (n_recved < 0) {
+			} else if (n_recved <= 0) {
 				perror("recv()");
-				continue;
+				break;
 			}
 		}
 		close(client_sockfd);
+		cout << "closing connetion " << endl;
 	}
 
 	return NULL;

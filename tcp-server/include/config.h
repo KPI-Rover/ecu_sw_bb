@@ -9,9 +9,11 @@
 /* Server configurations END */
 
 /* robot control configurations START */
-#define ID_GET_API_VERSION 0x01
-#define ID_SET_MOTOR_SPEED 0x02
-#define ID_SET_ALL_MOTORS_SPEED 0x03
+#define ID_GET_API_VERSION 1
+#define ID_SET_MOTOR_SPEED 2
+#define ID_SET_ALL_MOTORS_SPEED 3
+#define ID_GET_ENCODER 4
+#define ID_GET_ALL_ENCODERS 5
 /* robot control configuraitons END */
 
 /*  */
