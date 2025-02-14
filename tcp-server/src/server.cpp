@@ -1,6 +1,6 @@
 #include "TCPServerReceiver.h"
 #include <getopt.h>
-
+#include "motorsProcessor.h"
 using namespace std;
 
 //#define BUFFERSIZE 1024
@@ -27,7 +27,8 @@ int main(int argc, char* argv[]) {
 			return EXIT_FAILURE;
 		}
 	}
-	TCPServer server(server_address, server_portnum);
+	MotorProcessor motors_processor;
+	TCPServer server(server_address, server_portnum, &motors_processor);
 
 	server.init();
 	server.start();

@@ -2,20 +2,7 @@
 #define TCPSERVERRECEIVER_H
 
 #include "config.h"
-#include <cstring>
-#include <iostream>
-#include <unistd.h>
-#include <errno.h>
-#include <resolv.h>
-#include <pthread.h>
-#include <csignal>
-
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <ifaddrs.h>
-#include <netdb.h>
+#include "motorsProcessor.h"
 
 using namespace std;
 
@@ -27,11 +14,13 @@ public:
 	char *server_address;
 	int server_portnum;
 	bool stopThread = false;
-	
+	MotorProcessor *commandProcessor;
 
-	TCPServer(const char *ip_address, int port) {
+	TCPServer(const char *ip_address, int port, MotorProcessor *proc) {
 		server_address = new char[strlen(ip_address) + 1 ];
 		strcpy(server_address, ip_address);
+
+		commandProcessor = proc; // set for using motorProcess class inside our tcp server
 
 		server_portnum = port;
 	};

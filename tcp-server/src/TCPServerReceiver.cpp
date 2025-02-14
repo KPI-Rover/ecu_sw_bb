@@ -1,5 +1,6 @@
 #include "TCPServerReceiver.h"
 #include "config.h"
+#include "motorsProcessor.h"
 
 char* get_primary_ip() {
 	/*
@@ -44,6 +45,7 @@ int TCPServer::init() {
 		/*
 			Fucntions responsible for initialising new socket (TCP socket)
 		 */
+		
 
 		//int sockfd, client_sockfd;
 		struct sockaddr_in serv_addr;
@@ -82,6 +84,9 @@ int TCPServer::init() {
 		}
 
 		cout << "Started server on " << server_address << ":" << server_portnum << endl;
+
+		commandProcessor->init(SHASSIARR); // initializing of commandProcessor  
+
 		return sockfd;
 
 }
@@ -133,6 +138,17 @@ void* TCPServer::serverThreadFunc() {
 					cout << "motor to do " << static_cast<int>(motor_id) << endl;
 					cout << "motor new rpm " << static_cast<int>(motor_rpm) << endl;
 
+
+
+					memset(buffer, 0, BUFFERSIZE); // cleaning buffer
+					memset(buffer, ID_SET_MOTOR_SPEED, sizeof(uint8_t));
+
+					if (send(client_sockfd, buffer, 8, 0) < 0) {
+						// sending response
+						perror("send()");
+						break; 
+					}
+
 				} else if (cmd_id == ID_GET_API_VERSION) {
 					cout << "command get_api_version isn't ready yet" << endl;
 
@@ -150,8 +166,18 @@ void* TCPServer::serverThreadFunc() {
 						cout << "motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]) << endl;
 					}
 
+					memset(buffer, 0, BUFFERSIZE); // cleaning buffer
+					memset(buffer, ID_SET_ALL_MOTORS_SPEED, sizeof(uint8_t));
+
+					if (send(client_sockfd, buffer, 8, 0) < 0) {
+						// sending response
+						perror("send()");
+						break; 
+					}
+
 				} else if (cmd_id == ID_GET_ENCODER) {
 					cout << "command get encoder is not ready yet" << endl;
+					
 					
 				} else if (cmd_id == ID_GET_ENCODER) {
 					cout << "command get encoder is not ready yet" << endl;
@@ -162,14 +188,7 @@ void* TCPServer::serverThreadFunc() {
 
 
 				/* Sending response */
-				memset(buffer, 0, BUFFERSIZE); // cleaning buffer
-				strcpy(buffer, "Response");
-
-				if (send(client_sockfd, buffer, 8, 0) < 0) {
-					// sending response
-					perror("send()");
-					break; 
-				}
+				
 
 
 				// temporary if for ending of conneciton
@@ -255,6 +274,8 @@ void TCPServer::destroy() {
 		exit(EXIT_FAILURE);
 	}
 	
+	commandProcessor->destroy();
+
 	delete[] server_address; // cleaning data from heap
 	pthread_join(serverThread_id, nullptr); // joining threads
 	pthread_join(timerThread_id, nullptr);
