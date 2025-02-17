@@ -138,6 +138,7 @@ void* TCPServer::serverThreadFunc() {
 					cout << "motor to do " << static_cast<int>(motor_id) << endl;
 					cout << "motor new rpm " << static_cast<int>(motor_rpm) << endl;
 
+					commandProcessor->setMotorRPM(static_cast<int>(motor_id), static_cast<int>(motor_rpm));
 
 
 					memset(buffer, 0, BUFFERSIZE); // cleaning buffer
@@ -164,6 +165,7 @@ void* TCPServer::serverThreadFunc() {
 
 					for (int i = 0; i < 4; i++) {
 						cout << "motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]) << endl;
+						commandProcessor->setMotorRPM(i, static_cast<int>(motors_rpm_arr[i]));
 					}
 
 					memset(buffer, 0, BUFFERSIZE); // cleaning buffer
@@ -230,6 +232,10 @@ void* TCPServer::timerThreadFunc() {
 			pthread_mutex_unlock(&timer_mutex);
 		} else if (counter == 0) {
 			// command to stop all motors
+			commandProcessor->stopMotor(0);
+			commandProcessor->stopMotor(1);
+			commandProcessor->stopMotor(2);
+			commandProcessor->stopMotor(3);
 			usleep(1000000); // just every second reminder  
 			cout << "MOTORS STOP!!" << endl;
 				
