@@ -8,19 +8,20 @@ using namespace std;
 
 char* get_primary_ip();
 
-
 class TCPServer {
 public:
 	char *server_address;
 	int server_portnum;
 	bool stopThread = false;
+	sem_t *progSemaphore;
 	MotorProcessor *commandProcessor;
 
-	TCPServer(const char *ip_address, int port, MotorProcessor *proc) {
+	TCPServer(const char *ip_address, int port, MotorProcessor *proc, sem_t *sem) {
 		server_address = new char[strlen(ip_address) + 1 ];
 		strcpy(server_address, ip_address);
 
 		commandProcessor = proc; // set for using motorProcess class inside our tcp server
+		progSemaphore = sem;
 
 		server_portnum = port;
 	};

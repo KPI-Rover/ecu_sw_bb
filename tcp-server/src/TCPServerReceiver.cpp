@@ -193,7 +193,8 @@ void* TCPServer::serverThreadFunc() {
 
 				// temporary if for ending of conneciton
 				if (strcmp(buffer, "end") == 0) {
-					stopThread = true;			
+					stopThread = true;
+					sem_post(progSemaphore);			
 				}
 
 			} else if (n_recved <= 0) {
@@ -275,7 +276,7 @@ void TCPServer::destroy() {
 	}
 	
 	commandProcessor->destroy();
-
+	//sem_post(progSemaphore);
 	delete[] server_address; // cleaning data from heap
 	pthread_join(serverThread_id, nullptr); // joining threads
 	pthread_join(timerThread_id, nullptr);

@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-using namespace std;
+
 /* START of Including of main libs */
 #include <cstring>
 #include <iostream>
@@ -19,7 +19,13 @@ using namespace std;
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <netdb.h>
+#include <semaphore.h>
 /* END of including of main libs */
+
+using namespace std;
+
+
+
 
 /* Server configurations START */
 #define NUMSLOTS 5 // how many connections can server process
