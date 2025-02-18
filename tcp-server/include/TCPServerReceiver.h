@@ -12,7 +12,7 @@ class TCPServer {
 public:
 	char *server_address;
 	int server_portnum;
-	bool stopThread = false;
+
 	sem_t *progSemaphore;
 	MotorProcessor *commandProcessor;
 

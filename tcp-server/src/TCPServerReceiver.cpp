@@ -131,6 +131,7 @@ void* TCPServer::serverThreadFunc() {
 				uint8_t cmd_id = buffer[0];
 				cout << "server get command: " <<  static_cast<int>(cmd_id) << endl;
 				if (cmd_id == ID_SET_MOTOR_SPEED) {
+					
 					uint8_t motor_id = buffer[1];
 					int32_t motor_rpm;
 					
@@ -145,8 +146,10 @@ void* TCPServer::serverThreadFunc() {
 
 					memset(buffer, 0, BUFFERSIZE); // cleaning buffer
 					memset(buffer, ID_SET_MOTOR_SPEED, sizeof(uint8_t));
+					
+					//set_all_motors_speed(commandProcessor, buffer);
 
-					if (send(client_sockfd, buffer, 8, 0) < 0) {
+					if (send(client_sockfd, buffer, 1, 0) < 0) {
 						// sending response
 						perror("send()");
 						break; 
@@ -173,7 +176,7 @@ void* TCPServer::serverThreadFunc() {
 					memset(buffer, 0, BUFFERSIZE); // cleaning buffer
 					memset(buffer, ID_SET_ALL_MOTORS_SPEED, sizeof(uint8_t));
 
-					if (send(client_sockfd, buffer, 8, 0) < 0) {
+					if (send(client_sockfd, buffer, 1, 0) < 0) {
 						// sending response
 						perror("send()");
 						break; 
@@ -192,14 +195,6 @@ void* TCPServer::serverThreadFunc() {
 
 
 				/* Sending response */
-				
-
-
-				// temporary if for ending of conneciton
-				if (strcmp(buffer, "end") == 0) {
-					//stopThread = true;
-					sem_post(progSemaphore);			
-				}
 
 			} else if (n_recved <= 0) {
 				perror("recv()");
