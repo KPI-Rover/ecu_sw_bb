@@ -1,20 +1,12 @@
 #include "TCPServerReceiver.h"
-#include <getopt.h>
 #include "motorsProcessor.h"
 #include "config.h"
 using namespace std;
 
-//#define BUFFERSIZE 1024
-//#define NUMSLOTS 5
 
-sem_t stopProgramSem;
+sem_t stopProgramSem; /// global value of semaphor that is ckecked to stop rpogrma
 
-void interruptSignalHandler(int signal) {
-	cout << "get sighandelererere" << endl;
-	sem_post(&stopProgramSem);
-	//exit(0);
-	
-}
+void interruptSignalHandler(int signal); 
 
 int main(int argc, char* argv[]) {
 	char *server_address = get_primary_ip();
@@ -46,14 +38,21 @@ int main(int argc, char* argv[]) {
 	server.init();
 	server.start();
 
-	signal(SIGINT, interruptSignalHandler);
-	//while (0) {}
-	//while (!server.stopThread) {}
+	signal(SIGINT, interruptSignalHandler); // initializing of custom signal handlers
+	signal(SIGTERM, interruptSignalHandler); // initializing of custom signal handlers
+
 	sem_wait(&stopProgramSem);
-	cout << "start destroying" << endl;
+	cout << "Stopping ..." << endl;
 
 	server.destroy();
 	
 	
 	return 0;
+}
+
+void interruptSignalHandler(int signal) {
+	cout << "Get signal to stop program" << endl;
+	sem_post(&stopProgramSem);
+	//exit(0);
+	
 }

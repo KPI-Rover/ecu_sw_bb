@@ -1,4 +1,5 @@
 rootfs/rootfs/
+rootfs/.gitignore
 Makefile
 CMakeCache.txt
 

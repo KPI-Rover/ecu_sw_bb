@@ -83,9 +83,11 @@ int TCPServer::init() {
 			return -1;
 		}
 
+		
+		commandProcessor->init(SHASSIARR); // initializing of commandProcessor  
+
 		cout << "Started server on " << server_address << ":" << server_portnum << endl;
 
-		commandProcessor->init(SHASSIARR); // initializing of commandProcessor  
 
 		return sockfd;
 
@@ -195,7 +197,7 @@ void* TCPServer::serverThreadFunc() {
 
 				// temporary if for ending of conneciton
 				if (strcmp(buffer, "end") == 0) {
-					stopThread = true;
+					//stopThread = true;
 					sem_post(progSemaphore);			
 				}
 
@@ -225,18 +227,19 @@ void* TCPServer::timerThreadFunc() {
 
 	while (1) {
 		if (counter > 0) {
-			usleep(100000);
-			pthread_mutex_lock(&timer_mutex);
+			usleep(TIMERPRECISION);
+			pthread_mutex_lock(&timer_mutex); // locking mutex to decrease tier value
 			counter--;
+			pthread_mutex_unlock(&timer_mutex); // unlocking mutex for increasing timer value 
 
-			pthread_mutex_unlock(&timer_mutex);
 		} else if (counter == 0) {
 			// command to stop all motors
 			commandProcessor->stopMotor(0);
 			commandProcessor->stopMotor(1);
 			commandProcessor->stopMotor(2);
 			commandProcessor->stopMotor(3);
-			usleep(1000000); // just every second reminder  
+			//usleep(1000000); // just every second reminder  
+			sleep(TIMESTOP);
 			cout << "MOTORS STOP!!" << endl;
 				
 		}

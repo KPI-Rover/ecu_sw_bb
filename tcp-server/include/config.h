@@ -10,6 +10,7 @@
 #include <resolv.h>
 #include <pthread.h>
 #include <csignal>
+#include <getopt.h>
 
 #include <robotcontrol.h>
 
@@ -35,16 +36,16 @@ using namespace std;
 /* Server configurations END */
 
 /* robot control ccommands START */
-#define ID_GET_API_VERSION 1
-#define ID_SET_MOTOR_SPEED 2
-#define ID_SET_ALL_MOTORS_SPEED 3
-#define ID_GET_ENCODER 4
-#define ID_GET_ALL_ENCODERS 5
-#define MOTOR_ID_START 0 // first motor designation
+#define ID_GET_API_VERSION 0x01
+#define ID_SET_MOTOR_SPEED 0x02
+#define ID_SET_ALL_MOTORS_SPEED 0x03
+#define ID_GET_ENCODER 0x04
+#define ID_GET_ALL_ENCODERS 0x05
+
 /* robot control commands END */
 
 /* robot control configurations START */
-
+#define MOTOR_ID_START 0 // first motor designation
 #define MOTORS_NUMBER 4
 const int SHASSIARR[MOTORS_NUMBER] = {1, 2, 3, 4}; // don't change
 #define MOTOR_INVERTED 3 // don't change
