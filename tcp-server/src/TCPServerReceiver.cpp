@@ -129,7 +129,7 @@ void* TCPServer::serverThreadFunc() {
 				/* unlocking mutex above */
 
 				uint8_t cmd_id = buffer[0];
-				cout << "server get command: " <<  static_cast<int>(cmd_id) << endl;
+				//cout << "server get command: " <<  static_cast<int>(cmd_id) << endl;
 				if (cmd_id == ID_SET_MOTOR_SPEED) {
 					
 					uint8_t motor_id = buffer[1];
@@ -138,8 +138,7 @@ void* TCPServer::serverThreadFunc() {
 					memcpy(&motor_rpm, buffer+2, sizeof(int32_t));
 					motor_rpm = ntohl(motor_rpm);				
 					
-					cout << "motor to do " << static_cast<int>(motor_id) << endl;
-					cout << "motor new rpm " << static_cast<int>(motor_rpm) << endl;
+					cout << "[COMMAND] motor " << static_cast<int>(motor_id) << " new rpm " << static_cast<int>(motor_rpm) << endl;
 
 					commandProcessor->setMotorRPM(static_cast<int>(motor_id), static_cast<int>(motor_rpm));
 
@@ -169,7 +168,7 @@ void* TCPServer::serverThreadFunc() {
 					}
 
 					for (int i = 0; i < 4; i++) {
-						cout << "motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]) << endl;
+						cout << "[COMMAND] motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]) << endl;
 						commandProcessor->setMotorRPM(i, static_cast<int>(motors_rpm_arr[i]));
 					}
 
@@ -202,7 +201,7 @@ void* TCPServer::serverThreadFunc() {
 			}
 		}
 		close(client_sockfd);
-		cout << "closing connetion " << endl;
+		cout << "[INFO] closing connetion " << endl;
 	}
 
 	return NULL;
@@ -235,7 +234,7 @@ void* TCPServer::timerThreadFunc() {
 			commandProcessor->stopMotor(3);
 			//usleep(1000000); // just every second reminder  
 			sleep(TIMESTOP);
-			cout << "MOTORS STOP!!" << endl;
+			cout << "[INFO] Motor set to stop" << endl;
 				
 		}
 			
@@ -252,12 +251,12 @@ void TCPServer::start() {
 	Functions responsible for starting threads for timer and listening for new messages
 	 */
 	if (pthread_create(&serverThread_id, nullptr, &serverThreadFuncWrapper, this) != 0){ // thread for listening new messages
-		perror("Error: pthread_create()");
+		perror("[ERROR] pthread_create()");
 		exit(EXIT_FAILURE);
 	}
 		
 	if (pthread_create(&timerThread_id, nullptr, &timerThreadFuncWrapper, this) != 0){ // thread for timer
-		perror("Error: pthread_create()");
+		perror("[ERROR] pthread_create()");
 		exit(EXIT_FAILURE);
 	}
 	
@@ -270,12 +269,12 @@ void TCPServer::destroy() {
 	function  responsible for cleaning data and joining threads
 	 */
 	if (pthread_cancel(serverThread_id) != 0) { // canceling listening thread
-		perror("Error: pthread_cancel()");
+		perror("[ERROR] pthread_cancel()");
 		exit(EXIT_FAILURE);
 	}
 	
 	if (pthread_cancel(timerThread_id) != 0) { // cancleing timer thread
-		perror("Error: pthread_cancel()");
+		perror("[ERROR] pthread_cancel()");
 		exit(EXIT_FAILURE);
 	}
 	

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(tcp-server) #temporary
+project(kpi_rover_motor_control) #temporary
 
 #set(PROJECT_NAME main)
 set(CMAKE_C_COMPILER /usr/bin/arm-linux-gnueabihf-gcc-8)
@@ -14,7 +14,7 @@ find_package(Threads REQUIRED)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 	
 set(SOURCE_FILES
-	src/server.cpp
+	src/main.cpp
 	src/TCPServerReceiver.cpp
 	src/motorsProcessor.cpp
 )

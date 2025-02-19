@@ -50,7 +50,7 @@ private:
 
 	double getDC(int entryRPM) {
 		double result = static_cast<double>(entryRPM) / MAX_RPM;
-		cout << result << endl; // debug
+		//cout << result << endl; // debug
 		return result;
 	}
 
