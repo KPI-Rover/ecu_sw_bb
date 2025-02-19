@@ -9,9 +9,9 @@ void MotorProcessor::init(const int* motorsArray) {
         // start signal handler so we can exit cleanly
 
         if(rc_enable_signal_handler()==-1){
-                fprintf(stderr,"[ERROR][RC] failed to start signal handler\n");
+            fprintf(stderr,"[ERROR][RC] failed to start signal handler\n");
                 //return nullptr;
-		exit(EXIT_FAILURE);
+			exit(EXIT_FAILURE);
         }	
 	
 	

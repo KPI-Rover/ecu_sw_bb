@@ -17,15 +17,15 @@ int main(int argc, char* argv[]) {
 	while ((opt = getopt(argc, argv, "a:p:")) != -1) {
 		switch (opt) {
 		    case 'a':
-			server_address = optarg;
-			break;
+				server_address = optarg;
+				break;
 		    case 'p':
-			server_portnum = atoi(optarg);
-			break;
+				server_portnum = atoi(optarg);
+				break;
 		    default:
-			cerr << "Usage: " << argv[0] << endl;
+				cerr << "Usage: " << argv[0] << endl;
 		       	cerr << " [-a server_address] " << endl; 
-			cerr << " [-p server_portnum]" << endl;
+				cerr << " [-p server_portnum]" << endl;
 			return EXIT_FAILURE;
 		}
 	}

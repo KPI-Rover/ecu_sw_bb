@@ -7,89 +7,89 @@ char* get_primary_ip() {
 	 	Automatically finding IP adress for hosting server
 		returns string of IP-address
 	 */
-        struct ifaddrs *ifaddr, *ifa;
-        int family, s;
-        char *host = new char[NI_MAXHOST];
+	struct ifaddrs *ifaddr, *ifa;
+	int family, s;
+	char *host = new char[NI_MAXHOST];
 
-        if (getifaddrs(&ifaddr) == -1) {
-                perror("getifaddrs");
-                exit(EXIT_FAILURE);
-        }
+	if (getifaddrs(&ifaddr) == -1) {
+		perror("getifaddrs");
+		exit(EXIT_FAILURE);
+	}
 
-        for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-                if (ifa->ifa_addr == NULL)
-                        continue;
+	for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+		if (ifa->ifa_addr == NULL)
+			continue;
 
-                family = ifa->ifa_addr->sa_family;
+		family = ifa->ifa_addr->sa_family;
 
-                if (family == AF_INET) { // Check it is IPv4
-                        s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in),
-                                        host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-                        if (s != 0) {
-                                printf("getnameinfo() failed: %s\n", gai_strerror(s));
-                                exit(EXIT_FAILURE);
-                        }
-                        // Ignore loopback address
-                        if (strcmp(ifa->ifa_name, "lo") != 0) {
-                                break;
-                        }
-                }
-        }
+		if (family == AF_INET) { // Check it is IPv4
+			s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in),
+					host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+			if (s != 0) {
+				printf("getnameinfo() failed: %s\n", gai_strerror(s));
+				exit(EXIT_FAILURE);
+			}
+			// Ignore loopback address
+			if (strcmp(ifa->ifa_name, "lo") != 0) {
+				break;
+			}
+		}
+	}
 
-        freeifaddrs(ifaddr);
-        return host;
+	freeifaddrs(ifaddr);
+	return host;
 }
 
 
 int TCPServer::init() {
-		/*
-			Fucntions responsible for initialising new socket (TCP socket)
-		 */
+	/*
+		Fucntions responsible for initialising new socket (TCP socket)
+		*/
+	
+
+	//int sockfd, client_sockfd;
+	struct sockaddr_in serv_addr;
+	int reuseaddr = 1;
+
+	//cout << "Hello , start of tcp server" << endl;
+
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if (sockfd < 0) {
+		perror("Error: Socket()");
+		return -1;
+	}
+
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, 
+				(void *) &reuseaddr, (socklen_t) sizeof(int)) != 0) {
+		perror("setsockopt()");
+		return -1;
+	}
+
+	memset(&serv_addr, 0, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = inet_addr(server_address);
+	serv_addr.sin_port = htons(server_portnum);
+	
+	
+	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) != 0) {
+		perror("bind()");
+		return -1;
 		
+	}
 
-		//int sockfd, client_sockfd;
-		struct sockaddr_in serv_addr;
-		int reuseaddr = 1;
+	if (listen(sockfd, NUMSLOTS) != 0) {
+		perror("listen");
+		return -1;
+	}
 
-		//cout << "Hello , start of tcp server" << endl;
+	
+	commandProcessor->init(SHASSIARR); // initializing of commandProcessor  
 
-		sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-		if (sockfd < 0) {
-			perror("Error: Socket()");
-			return -1;
-		}
-
-		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, 
-					(void *) &reuseaddr, (socklen_t) sizeof(int)) != 0) {
-			perror("setsockopt()");
-			return -1;
-		}
-
-		memset(&serv_addr, 0, sizeof(serv_addr));
-		serv_addr.sin_family = AF_INET;
-		serv_addr.sin_addr.s_addr = inet_addr(server_address);
-		serv_addr.sin_port = htons(server_portnum);
-		
-		
-		if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) != 0) {
-					perror("bind()");
-					return -1;
-			
-		}
-
-		if (listen(sockfd, NUMSLOTS) != 0) {
-			perror("listen");
-			return -1;
-		}
-
-		
-		commandProcessor->init(SHASSIARR); // initializing of commandProcessor  
-
-		cout << "Started server on " << server_address << ":" << server_portnum << endl;
+	cout << "Started server on " << server_address << ":" << server_portnum << endl;
 
 
-		return sockfd;
+	return sockfd;
 
 }
 

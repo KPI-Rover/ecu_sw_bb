@@ -28,13 +28,13 @@ public:
 	
 	static void* serverThreadFuncWrapper(void *arg) {
 		reinterpret_cast<TCPServer*>(arg)->serverThreadFunc();
-	        return nullptr;	
+	    return nullptr;	
 		
 	}
 	
 	static void* timerThreadFuncWrapper(void *arg) {
 		reinterpret_cast<TCPServer*>(arg)->timerThreadFunc();
-	        return nullptr;	
+	    return nullptr;	
 	}
 
 	int init();
