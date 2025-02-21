@@ -15,9 +15,7 @@ public:
     };	
 
     void motorGo(int newRPM) {
-        if (newRPM >= MAX_RPM) {
-            newRPM = MAX_RPM;
-        }
+        
 
         currentRPM = newRPM;
         //cout << "new rpm" << newRPM << endl; // debugging 
@@ -35,6 +33,7 @@ public:
         rc_motor_brake(motorNumber);
         rc_usleep(BRAKE_TIME);
         rc_motor_free_spin(motorNumber);
+        currentRPM = 0;
     }
 
     int getRPM () {

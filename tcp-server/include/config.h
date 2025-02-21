@@ -11,7 +11,6 @@
 #include <pthread.h>
 #include <csignal>
 #include <getopt.h>
-
 #include <robotcontrol.h>
 
 #include <netinet/in.h>

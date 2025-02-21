@@ -39,8 +39,15 @@ void MotorProcessor::init(const int* motorsArray) {
 
 void MotorProcessor::setMotorRPM(int channel, int newRPM) {
     if (newRPM > MIN_RPM) {
-        motors[channel-MOTOR_ID_START].motorGo(newRPM);
+        if (newRPM >= MAX_RPM) {
+            cout << "[INFO][RC] Set RPM to max value" << endl;
+            motors[channel-MOTOR_ID_START].motorGo(MAX_RPM);
+        } else {
+            motors[channel-MOTOR_ID_START].motorGo(newRPM);
+        }
+        
     } else {
+        cout << "[INFO][RC] Set RPM to stop because RPM less than MIN_RPM" << endl;
         motors[channel-MOTOR_ID_START].motorStop();
     }
 
