@@ -38,7 +38,7 @@ public:
     }
 
     int init();
-    void start();
+    int start();
     void destroy();
         
 
