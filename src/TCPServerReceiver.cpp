@@ -140,7 +140,12 @@ void* TCPServer::serverThreadFunc() {
                     
                     cout << "[COMMAND] motor " << static_cast<int>(motor_id) << " new rpm " << static_cast<int>(motor_rpm) << endl;
                     cout << "[INFO] Motor set run" << endl;
-                    commandProcessor->setMotorRPM(static_cast<int>(motor_id), static_cast<int>(motor_rpm));
+
+                    if (commandProcessor->setMotorRPM(static_cast<int>(motor_id), static_cast<int>(motor_rpm)) != 0) {
+                        cout << "[ERROR] Error setMotorRPM, retry connection" << endl;
+                        continue; //?
+                    }
+                    
 
 
                     memset(buffer, 0, BUFFERSIZE); // cleaning buffer
@@ -184,8 +189,13 @@ void* TCPServer::serverThreadFunc() {
 
                     for (int i = MOTOR_ID_START; i < MOTOR_ID_START + MOTORS_NUMBER; i++ ) {
                         cout << "[COMMAND] motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]) << " ";
-                        commandProcessor->setMotorRPM(i, static_cast<int>(motors_rpm_arr[i]));
+                        if (commandProcessor->setMotorRPM(i, static_cast<int>(motors_rpm_arr[i])) == 0) {
+                            cout << "[ERROR] Error setMotorRPM, retry connection" << endl;
+                            continue; //? or break
+                        }
+                        
                     }
+
                     cout << endl;
                     cout << "[INFO] Motor set run" << endl;
 
@@ -242,7 +252,7 @@ void* TCPServer::serverThreadFunc() {
                     }
 
                 } else {
-                    cout << "cannot recognize command" << endl;
+                    cout << "[INFO] cannot recognize command" << endl;
 
                 }
 
@@ -255,6 +265,7 @@ void* TCPServer::serverThreadFunc() {
             }
         }
         close(client_sockfd);
+
         cout << "[INFO] closing connetion " << endl;
     }
 
@@ -303,20 +314,21 @@ void* TCPServer::timerThreadFunc() {
 
 
 
-void TCPServer::start() {
+int TCPServer::start() {
     /* 
     Functions responsible for starting threads for timer and listening for new messages
      */
     if (pthread_create(&serverThread_id, nullptr, &serverThreadFuncWrapper, this) != 0){ // thread for listening new messages
-        perror("[ERROR] pthread_create()");
-        exit(EXIT_FAILURE);
+        perror("[ERROR] rx/tx pthread_create()");
+        return -1;
     }
         
     if (pthread_create(&timerThread_id, nullptr, &timerThreadFuncWrapper, this) != 0){ // thread for timer
-        perror("[ERROR] pthread_create()");
-        exit(EXIT_FAILURE);
+        perror("[ERROR] timer pthread_create()");
+        return -1;
     }
     
+    return 0;
 
 }
 
@@ -325,6 +337,8 @@ void TCPServer::destroy() {
     /* 
     function  responsible for cleaning data and joining threads
      */
+
+    commandProcessor->destroy();
     if (pthread_cancel(serverThread_id) != 0) { // canceling listening thread
         perror("[ERROR] pthread_cancel()");
         exit(EXIT_FAILURE);
@@ -335,7 +349,6 @@ void TCPServer::destroy() {
         exit(EXIT_FAILURE);
     }
     
-    commandProcessor->destroy();
     //sem_post(progSemaphore);
     delete[] server_address; // cleaning data from heap
     pthread_join(serverThread_id, nullptr); // joining threads

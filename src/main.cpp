@@ -35,8 +35,17 @@ int main(int argc, char* argv[]) {
     MotorProcessor motors_processor;
     TCPServer server(server_address, server_portnum, &motors_processor, &stopProgramSem);
 
-    server.init();
-    server.start();
+    if (server.init()  == -1) {
+        cout << "[ERROR] Error creating socket" << endl;
+        server.destroy();
+        return 1;
+    }
+
+    if (server.start() == -1) {
+        cout << "[ERROR] Error strting of receiving messages" << endl;
+        server.destroy();
+        return 1;
+    }
 
     signal(SIGINT, interruptSignalHandler); // initializing of custom signal handlers
     signal(SIGTERM, interruptSignalHandler); // initializing of custom signal handlers

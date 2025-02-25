@@ -14,7 +14,7 @@ public:
         motorNumber = assignedNumber;
     };	
 
-    void motorGo(int newRPM) {
+    int motorGo(int newRPM) {
         
 
         currentRPM = newRPM;
@@ -26,14 +26,30 @@ public:
         
         //cout << "go "  << currentDutyCycle  << endl; // debug
 
-        rc_motor_set(motorNumber, currentDutyCycle);
+        if (rc_motor_set(motorNumber, currentDutyCycle) != 0) {
+            cout << "[ERROR][RC] rc_motor_set" << endl;
+            return -1;
+        }
+
+        return 0;
     }
 
-    void motorStop() {
-        rc_motor_brake(motorNumber);
+    int motorStop() {
+        if (rc_motor_brake(motorNumber) != 0) {
+            cout << "[ERROR][RC] rc_motor_brake" << endl;
+            return -1;
+        }
+
         rc_usleep(BRAKE_TIME);
-        rc_motor_free_spin(motorNumber);
+
+        if (rc_motor_free_spin(motorNumber) != 0) {
+            cout << "[ERROR][RC] rc_motor_free_spin" << endl;
+            return -1;
+        }
+        
         currentRPM = 0;
+
+        return 0;
     }
 
     int getRPM () {
@@ -62,10 +78,10 @@ public:
 
     
     
-    void init(const int* motorsArray);
+    int init(const int* motorsArray);
     
-    void setMotorRPM(int channel, int newRPM);
-    void stopMotor(int channel);
+    int setMotorRPM(int channel, int newRPM);
+    int stopMotor(int channel);
 
     int getMotorRPM(int channel);
 

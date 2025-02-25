@@ -5,9 +5,6 @@ CMakeCache.txt
 cmake_install.sh
 bin/
 CMakeFiles/
-
-tcp-server/build/*
-tcp-server/src/endpoints.cpp
-tcp-server/include/endpoints.h
 build/*
-tcp-server/server
+
+tcp-server/*
