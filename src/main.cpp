@@ -1,44 +1,58 @@
-#include "SerialReceiver.h"
-#include "CommandProcessor.h"
-#include <robotcontrol.h>
+#include "TCPServerReceiver.h"
+#include "motorsProcessor.h"
+#include "config.h"
+using namespace std;
 
-#define ECU_VERSION "(Version: 1.0.0)"
-#define ECU_BAUDRATE B115200
 
-int main(int argc, char *argv[]) {
-    std::cout << "Motor controller based on BeagleBone Blue. " << ECU_VERSION << std::endl;
+sem_t stopProgramSem; /// global value of semaphor that is ckecked to stop rpogrma
 
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <serial_port>" << std::endl;
-        return EXIT_FAILURE;
+void interruptSignalHandler(int signal); 
+
+int main(int argc, char* argv[]) {
+    char *server_address = get_primary_ip();
+    int server_portnum = 5500;
+
+    // Command-line options
+    int opt;
+    while ((opt = getopt(argc, argv, "a:p:")) != -1) {
+        switch (opt) {
+            case 'a':
+                server_address = optarg;
+                break;
+            case 'p':
+                server_portnum = atoi(optarg);
+                break;
+            default:
+                cerr << "Usage: " << argv[0] << endl;
+                   cerr << " [-a server_address] " << endl; 
+                cerr << " [-p server_portnum]" << endl;
+            return EXIT_FAILURE;
+        }
     }
-
-    if (rc_kill_existing_process(2.0) < -2) {
-        perror("ERROR: Not able to kill existing process of robocontrol library: ");
-        return EXIT_FAILURE; 
-    }
+    sem_init(&stopProgramSem, 0, 0);
     
-    if (rc_enable_signal_handler() == -1) {
-        perror("ERROR: failed to start signal handler ");
-        return EXIT_FAILURE;
-    }
-    rc_make_pid_file();
-    rc_motor_init();
 
-    const char *serialPort = argv[1];
+    MotorProcessor motors_processor;
+    TCPServer server(server_address, server_portnum, &motors_processor, &stopProgramSem);
 
-    CommandProcessor commandProcessor;
-    SerialReceiver sReceiver(commandProcessor);
-    sReceiver.init(serialPort, ECU_BAUDRATE);
-    sReceiver.start();
+    server.init();
+    server.start();
 
-    rc_set_state(RUNNING);
-    while (rc_get_state()!=EXITING);
+    signal(SIGINT, interruptSignalHandler); // initializing of custom signal handlers
+    signal(SIGTERM, interruptSignalHandler); // initializing of custom signal handlers
 
-    std::cout << "Exit" << std::endl;
-    sReceiver.destroy();
-    rc_motor_cleanup();
-    rc_remove_pid_file();
+    sem_wait(&stopProgramSem);
+    cout << "Stopping ..." << endl;
 
-    return EXIT_SUCCESS;
+    server.destroy();
+    
+    
+    return 0;
+}
+
+void interruptSignalHandler(int signal) {
+    cout << "Get signal to stop program" << endl;
+    sem_post(&stopProgramSem);
+    //exit(0);
+    
 }

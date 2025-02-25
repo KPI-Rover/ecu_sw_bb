@@ -11,41 +11,6 @@ git clone git@github.com:KPI-Rover/ecu_sw_bb.git
 cd ecu_sw_bb
 ```
 
-## Build Docker Image
-```
-docker build -t bbb .
-```
-
-## Get Root File System
-```
-cd rootfs
-./download_rootfs.sh
-```
-
-## Build
-### Start Docker container
-```
-# Run from project root folder
-
-docker run -it \
-    -u $(id -u ${USER}):$(id -g ${USER}) \
-    -v $(pwd):/build \
-    -v $(pwd)/rootfs/rootfs:/rootfs \
-    bbb
-```
-### Build in Docker shell
-```
-cd build
-cmake ..
-make
-exit
-```
-
-### Upload binary file to Beaglebone Blue
-```
-scp build/bin/ecu-bbb debian@192.168.6.2:~
-```
-
 ## Preparing Beaglebone Blue Board
 
 ### Download and flash image
@@ -158,6 +123,80 @@ sudo systemctl start rc_battery_monitor
 
 sudo systemctl enable robotcontrol
 sudo systemctl start robotcontrol
+```
+
+## Build of project and loading on BBB
+
+### Build Docker Image
+```
+docker build -t bbb .
+```
+
+### Get Root File System
+```
+cd rootfs
+./download_rootfs.sh
+```
+
+### Start Docker container
+```
+# Run from project root folder
+
+docker run -it \
+    -u $(id -u ${USER}):$(id -g ${USER}) \
+    -v $(pwd):/build \
+    -v $(pwd)/rootfs/rootfs:/rootfs \
+    bbb
+```
+
+### Build in Docker shell (inside container)
+```
+cd build/
+cmake ..
+make
+exit
+```
+
+### Upload binary file to Beaglebone Blue
+```
+scp build/kpi_rover_motor_control debian@192.168.7.2:~
+```
+
+## Running
+
+### Connect to board using SSH 
+Using USB over network
+
+```
+ssh debian@192.168.7.2:~
+password: temppwd
+```
+
+If you set wireless interface
+
+```
+ssh debian@<bbb_local_ip>:~
+password: temppwd
+```
+
+### Run program
+```
+./kpi_rover_motor_control -p 6000
+```
+
+## Fixing probable issues while debugging or testing
+
+If server started on 192.168.7.2 :
+```
+(On PC) 
+sudo route add -net 192.168.7.0 netmask 255.255.255.0 gw <bbb_local_ip>
+```
+
+If you have no address to connect usb-over-network
+
+```
+(On PC)
+sudo ip addr add 192.168.7.1/24 dev enxf45eab505491
 ```
 
 ## References

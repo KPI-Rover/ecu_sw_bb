@@ -1,33 +1,31 @@
 cmake_minimum_required(VERSION 3.10)
-project(ecu-bbb)
+project(kpi_rover_motor_control) #temporary
 
-# Set the C and C++ compilers (replace arm-linux-gnueabihf-gcc and arm-linux-gnueabihf-g++ with your cross-compilers)
+#set(PROJECT_NAME main)
 set(CMAKE_C_COMPILER /usr/bin/arm-linux-gnueabihf-gcc-8)
 set(CMAKE_CXX_COMPILER /usr/bin/arm-linux-gnueabihf-g++-8)
+#set(CMAKE_C_COMPILER gcc)
+#set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 11)
 
-# Add the pthread library
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-# Add your source files here
+include_directories(${CMAKE_SOURCE_DIR}/include)
+	
 set(SOURCE_FILES
-    src/main.cpp
-    src/SerialReceiver.cpp
-    src/CommandProcessor.cpp
+	src/main.cpp
+	src/TCPServerReceiver.cpp
+	src/motorsProcessor.cpp
 )
 
-# Add your header files here
 set(HEADER_FILES
-    include/SerialReceiver.h
-    include/CommandProcessor.h
+	include/TCPServerReceiver.h
+	include/config.h 
+	include/motorsProcessor.h		
 )
 
-# Add the executable
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
-
-# Set include directories
-# target_include_directories(${PROJECT_NAME} PRIVATE include)
 target_include_directories(${PROJECT_NAME} PRIVATE include /rootfs/usr/include/include)
 
 # Link the pthread library
@@ -41,9 +39,5 @@ if(NOT ROBOTCONTROL_LIB)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE ${ROBOTCONTROL_LIB})
 
-# Set output directories
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-)
+
+
