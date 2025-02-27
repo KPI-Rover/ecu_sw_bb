@@ -4,6 +4,7 @@
 
 /* START of Including of main libs */
 #include <cstring>
+#include <cmath>
 #include <iostream>
 #include <unistd.h>
 #include <errno.h>

@@ -102,11 +102,11 @@ void* TCPServer::serverThreadFunc() {
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);		
 
 
-    //int *main_sockfd = (int *) parameters;
-
     int n_recved, client_sockfd;
     char buffer[BUFFERSIZE];
     size_t buffer_cursor;
+    int32_t motors_rpm_arr[4];
+    int32_t motor_rpm;
     
 
     while (1) {
@@ -117,7 +117,11 @@ void* TCPServer::serverThreadFunc() {
             continue;
         }
         while (1) {
+            /* set up start conditions for new message */
             memset(buffer, 0, BUFFERSIZE);
+            memset(motors_rpm_arr, 0, 4 * sizeof(int32_t));
+            buffer_cursor = 0;
+            motor_rpm = 0;
             /* receiving reauests */
             n_recved = recv(client_sockfd, buffer, BUFFERSIZE, 0); // receiving data from connestion
             if (n_recved > 0) {
@@ -133,7 +137,7 @@ void* TCPServer::serverThreadFunc() {
                 if (cmd_id == ID_SET_MOTOR_SPEED) {
                     
                     uint8_t motor_id = buffer[1];
-                    int32_t motor_rpm;
+                    //int32_t motor_rpm;
                     
                     memcpy(&motor_rpm, buffer+2, sizeof(int32_t));
                     motor_rpm = ntohl(motor_rpm);				
@@ -151,13 +155,7 @@ void* TCPServer::serverThreadFunc() {
                     memset(buffer, 0, BUFFERSIZE); // cleaning buffer
                     memset(buffer, ID_SET_MOTOR_SPEED, sizeof(uint8_t));
                     buffer_cursor = sizeof(uint8_t);
-                    //set_all_motors_speed(commandProcessor, buffer);
 
-                    if (send(client_sockfd, buffer, buffer_cursor, 0) < 0) {
-                        // sending response
-                        perror("[ERROR] send()");
-                        break; 
-                    }
 
                 } else if (cmd_id == ID_GET_API_VERSION) {
                     
@@ -170,16 +168,10 @@ void* TCPServer::serverThreadFunc() {
                     memcpy(buffer+buffer_cursor, &response, sizeof(uint8_t));
                     buffer_cursor += sizeof(uint8_t);
 
-                    if (send(client_sockfd, buffer, buffer_cursor, 0) < 0) {
-                        // sending response
-                        perror("[ERROR] send()");
-                        break; 
-                    }
+
 
                 } else if (cmd_id == ID_SET_ALL_MOTORS_SPEED) {
-                    //cout << "command set_all_motors_speed is not ready yet" << endl;
-                    
-                    int32_t motors_rpm_arr[4];
+
 
                     for (int i = MOTOR_ID_START; i < MOTOR_ID_START + MOTORS_NUMBER; i++ ) {
                         memcpy(motors_rpm_arr+i , buffer+1+i * sizeof(int32_t), sizeof(int32_t));
@@ -188,8 +180,8 @@ void* TCPServer::serverThreadFunc() {
                     }
 
                     for (int i = MOTOR_ID_START; i < MOTOR_ID_START + MOTORS_NUMBER; i++ ) {
-                        cout << "[COMMAND] motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]) << " ";
-                        if (commandProcessor->setMotorRPM(i, static_cast<int>(motors_rpm_arr[i])) == 0) {
+                        cout << "[COMMAND] motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]) << " " << endl;
+                        if (commandProcessor->setMotorRPM(i, static_cast<int>(motors_rpm_arr[i])) != 0) {
                             cout << "[ERROR] Error setMotorRPM, retry connection" << endl;
                             continue; //? or break
                         }
@@ -203,17 +195,12 @@ void* TCPServer::serverThreadFunc() {
                     memset(buffer, ID_SET_ALL_MOTORS_SPEED, sizeof(uint8_t));
                     buffer_cursor = sizeof(uint8_t);
 
-                    if (send(client_sockfd, buffer, buffer_cursor, 0) < 0) {
-                        // sending response
-                        perror("[ERROR] send()");
-                        break; 
-                    }
 
                 } else if (cmd_id == ID_GET_ENCODER) {
                     
                     uint8_t motor_id = buffer[1];
                     cout << "[COMMAND] get motor " << static_cast<int>(motor_id) << " encoder " << endl;
-                    int32_t motor_rpm;
+                    //int32_t motor_rpm;
 
                     motor_rpm = commandProcessor->getMotorRPM(motor_id);
 
@@ -221,46 +208,42 @@ void* TCPServer::serverThreadFunc() {
                     memset(buffer, ID_GET_ENCODER, sizeof(uint8_t));
                     buffer_cursor = sizeof(uint8_t);
 
-                    memcpy(buffer + buffer_cursor, &motor_rpm, sizeof(int32_t));
+                    int32_t motor_rpm_order  = htonl(motor_rpm);
+                    memcpy(buffer + buffer_cursor, &motor_rpm_order, sizeof(int32_t));
                     buffer_cursor += sizeof(int32_t);
 
-                    if (send(client_sockfd, buffer, buffer_cursor, 0) < 0) {
-                        // sending response
-                        perror("[ERROR] send() ");
-                        break; 
-                    }
 
                     
                 } else if (cmd_id == ID_GET_ALL_ENCODERS) {
                     cout << "[COMMAND] get all encoders " << endl;
 
-                    int32_t motors_rpm_arr[4];
+                    
                     memset(buffer, 0, BUFFERSIZE);
                     memset(buffer, ID_GET_ALL_ENCODERS, sizeof(uint8_t));
-                    size_t buffer_cursor = sizeof(uint8_t);
+                    buffer_cursor = sizeof(uint8_t);
 
                     for (int i = MOTOR_ID_START; i < MOTOR_ID_START + MOTORS_NUMBER; i++ ) {
-                        int32_t encoder_RPM = commandProcessor->getMotorRPM(i);
+                        int32_t encoder_RPM = htonl(commandProcessor->getMotorRPM(i));
                         memcpy(buffer + buffer_cursor, &encoder_RPM, sizeof(int32_t));
                         buffer_cursor += sizeof(int32_t);
                     }
+                    
+                }
 
+                /* Sending response */
+                if (buffer_cursor != 0) {
                     if (send(client_sockfd, buffer, buffer_cursor, 0) < 0) {
                         // sending response
                         perror("[ERROR] send()");
                         break; 
                     }
-
-                } else {
-                    cout << "[INFO] cannot recognize command" << endl;
-
                 }
 
-
-                /* Sending response */
-
             } else if (n_recved <= 0) {
-                perror("[ERROR] recv()");
+                
+                if (n_recved < 0) {
+                    perror("[ERROR] recv()");
+                }
                 break;
             }
         }
