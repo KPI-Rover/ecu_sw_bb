@@ -101,7 +101,6 @@ void* TCPServer::serverThreadFunc() {
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);	
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);		
 
-
     int n_recved, client_sockfd;
     char buffer[BUFFERSIZE];
     size_t buffer_cursor;
@@ -122,6 +121,7 @@ void* TCPServer::serverThreadFunc() {
             memset(motors_rpm_arr, 0, 4 * sizeof(int32_t));
             buffer_cursor = 0;
             motor_rpm = 0;
+
             /* receiving reauests */
             n_recved = recv(client_sockfd, buffer, BUFFERSIZE, 0); // receiving data from connestion
             if (n_recved > 0) {
@@ -172,7 +172,6 @@ void* TCPServer::serverThreadFunc() {
 
                 } else if (cmd_id == ID_SET_ALL_MOTORS_SPEED) {
 
-
                     for (int i = MOTOR_ID_START; i < MOTOR_ID_START + MOTORS_NUMBER; i++ ) {
                         memcpy(motors_rpm_arr+i , buffer+1+i * sizeof(int32_t), sizeof(int32_t));
                         motors_rpm_arr[i] = ntohl(motors_rpm_arr[i]);
@@ -216,7 +215,6 @@ void* TCPServer::serverThreadFunc() {
                     
                 } else if (cmd_id == ID_GET_ALL_ENCODERS) {
                     cout << "[COMMAND] get all encoders " << endl;
-
                     
                     memset(buffer, 0, BUFFERSIZE);
                     memset(buffer, ID_GET_ALL_ENCODERS, sizeof(uint8_t));
