@@ -50,8 +50,8 @@ using namespace std;
 const int SHASSIARR[MOTORS_NUMBER] = {1, 2, 3, 4}; // don't change
 #define MOTOR_INVERTED 3 // don't change
 #define BRAKE_TIME 100000 // 100 ms 
-#define MIN_RPM 80
-#define MAX_RPM 530
+#define MIN_RPM 80000
+#define MAX_RPM 265000
 
 /* robot control configurations END */
 
