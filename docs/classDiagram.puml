@@ -1,0 +1,114 @@
+@startuml
+
+skinparam classAttributeIconSize 0
+
+interface ITransport {
+  + {abstract} init(): int
+  + {abstract} start(): int
+  + {abstract} destroy(): void
+  + {abstract} send(data: vector<uint8_t>): bool
+  + {abstract} receive(data: vector<uint8_t>&): bool
+}
+
+class TCPTransport {
+  - address_: string
+  - port_: int
+  - sockfd_: int
+  - progSemaphore_: sem_t*
+  - serverThread_: pthread_t
+  - receiveQueue_: MessageQueue
+  + TCPTransport(address: string, port: int, sem: sem_t*)
+  + init(): int
+  + start(): int
+  + destroy(): void
+  + send(data: vector<uint8_t>): bool
+  + receive(data: vector<uint8_t>&): bool
+  - serverThread(): void*
+}
+
+class MessageQueue {
+  - queue_: queue<vector<uint8_t>>
+  - mutex_: mutex
+  - cv_: condition_variable
+  + push(msg: vector<uint8_t>): void
+  + pop(msg: vector<uint8_t>&, timeout_ms: int): bool
+  + clear(): void
+}
+
+class KPIRoverECU {
+  - transport_: unique_ptr<ITransport>
+  - protocolHandler_: unique_ptr<ProtocolHandler>
+  - running_: atomic<bool>
+  - processingThread_: thread
+  + KPIRoverECU(transport: unique_ptr<ITransport>, motorsController: MotorsController*)
+  + start(): bool
+  + stop(): void
+  - processMessages(): void
+}
+
+class ProtocolHandler {
+  - motorsController_: MotorsController*
+  + ProtocolHandler(controller: MotorsController*)
+  + handleMessage(message: vector<uint8_t>): vector<uint8_t
+  - handleSetMotorSpeed(message: vector<uint8_t>): vector<uint8_t>
+  - handleGetApiVersion(message: vector<uint8_t>): vector<uint8_t>
+  - handleSetAllMotorsSpeed(message: vector<uint8_t>): vector<uint8_t>
+  - handleGetEncoder(message: vector<uint8_t>): vector<uint8_t>
+  - handleGetAllEncoders(message: vector<uint8_t>): vector<uint8_t>
+}
+
+class MotorsController {
+  - motors: Motor*[MOTORS_NUMBER]
+  + init(config: MotorConfig*): int
+  + setRPM(channel: int, rpm: int): int
+  + stopMotor(channel: int): int
+  + getEncoderCounter(channel: int): int
+  + destroy(): void
+  - isValidChannel(channel: int): bool
+}
+
+class Motor {
+  - motorNumber: int
+  - currentRPM: int
+  - currentDutyCycle: double
+  - inverted: boolean
+  + Motor(assignedNumber: int, inverted: boolean)
+  + setRPM(newRPM: int): int
+  + stop(): int
+  + getEncoderCounter(): int
+  - getDutyCycle(entryRPM: int): double
+}
+
+struct MotorConfig {
+  + number: int
+  + inverted: boolean
+}
+
+package "librobotcontrol" {
+  class RC_Motor {
+    + {static} rc_motor_init(): int
+    + {static} rc_motor_set(ch: int, duty: float): int
+    + {static} rc_motor_free_spin(ch: int): int
+    + {static} rc_motor_brake(ch: int): int
+    + {static} rc_motor_cleanup(): void
+  }
+
+  class RC_Encoder {
+    + {static} rc_encoder_init(): int
+    + {static} rc_encoder_read(ch: int): int
+    + {static} rc_encoder_write(ch: int, value: int): int
+    + {static} rc_encoder_cleanup(): void
+  }
+}
+
+ITransport <|.. TCPTransport
+TCPTransport o-- MessageQueue
+KPIRoverECU o-- ITransport
+KPIRoverECU o-- ProtocolHandler
+ProtocolHandler o-- MotorsController
+MotorsController o-- Motor
+Motor ..> RC_Motor : uses
+Motor ..> RC_Encoder : uses
+MotorsController ..> MotorConfig : uses
+
+@enduml
