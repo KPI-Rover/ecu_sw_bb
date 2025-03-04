@@ -19,6 +19,11 @@ int MotorProcessor::init(const int* motorsArray) {
         perror("[ERROR][RC] failed to start with frequency");
         return -1;
     }
+
+    if (rc_encoder_init()) {
+        perror("[ERROR][RC] failed to start with frequency");
+        return -1;
+    }
     
     Motor* result = new Motor[4] {
         Motor(*(motorsArray + 0)),
@@ -79,6 +84,7 @@ int MotorProcessor::stopMotor(int channel) {
 void MotorProcessor::destroy() {
     delete[] motors;
     rc_motor_cleanup();
+    rc_encoder_cleanup();
 }
 
 int MotorProcessor::getMotorRPM(int channel) {
