@@ -53,7 +53,14 @@ public:
     }
 
     int getRPM () {
-        return currentRPM;
+        // Read the current encoder count
+        rc_encoder_write(motorNumber, 0);
+        rc_usleep(20000); // 20 ms
+        int encoderTicks = rc_encoder_read(motorNumber);
+        double result = ((double)encoderTicks / LOOP_TICKS) * (ONESECONDMICRO / COUNT_TIME) * 60 * 100;
+        // Reset the encoder counter after reading
+        rc_encoder_write(motorNumber, 0);
+        return static_cast<int>(result);
     }
 
 private:	
