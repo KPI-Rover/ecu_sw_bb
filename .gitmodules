@@ -1,0 +1,3 @@
+[submodule "external/librobotcontrol"]
+	path = external/librobotcontrol
+	url = git@github.com:KPI-Rover/external_librobotcontrol.git
