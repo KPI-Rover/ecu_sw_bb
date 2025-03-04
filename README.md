@@ -129,37 +129,18 @@ sudo systemctl start robotcontrol
 
 ### Build Docker Image
 ```
-docker build -t bbb .
+docker build -t kpi-rover-bbb .
 ```
 
-### Get Root File System
-```
-cd rootfs
-./download_rootfs.sh
-```
-
-### Start Docker container
-```
-# Run from project root folder
-
-docker run -it \
-    -u $(id -u ${USER}):$(id -g ${USER}) \
-    -v $(pwd):/build \
-    -v $(pwd)/rootfs/rootfs:/rootfs \
-    bbb
-```
-
-### Build in Docker shell (inside container)
-```
-cd build/
-cmake ..
-make
-exit
+### Build application using Docker
+```bash
+./build.sh
 ```
 
 ### Upload binary file to Beaglebone Blue
-```
-scp build/kpi_rover_motor_control debian@192.168.7.2:~
+```bash
+export BBB_HOST=debian@<BeagleBone Blue IP>
+./deploy.sh
 ```
 
 ## Running
@@ -181,7 +162,7 @@ password: temppwd
 
 ### Run program
 ```
-./kpi_rover_motor_control -p 6000
+./kpi_rover_ecu -a 0.0.0.0 -p 6000
 ```
 
 ## Fixing probable issues while debugging or testing
