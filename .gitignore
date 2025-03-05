@@ -1,10 +1,9 @@
-rootfs/rootfs/
-rootfs/.gitignore
 Makefile
 CMakeCache.txt
 cmake_install.sh
 bin/
 CMakeFiles/
 build/*
+.vscode
 
 tcp-server/*
