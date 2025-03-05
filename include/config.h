@@ -32,6 +32,7 @@ using namespace std;
 #define NUMSLOTS 5 // how many connections can server process
 #define BUFFERSIZE 64 // maximum size of buffer
 #define TIMERPRECISION 100000 // 100 miliseconds in microsecond (for timer) 
+#define ONESECONDMICRO 1000000 // 1 s in microseconds
 #define TIMESTOP 1 // 1 second befre stopping all motors. If no new command is received over TCP for 1 second, all motors must stop.
 /* Server configurations END */
 
@@ -50,8 +51,9 @@ using namespace std;
 const int SHASSIARR[MOTORS_NUMBER] = {1, 2, 3, 4}; // don't change
 #define MOTOR_INVERTED 3 // don't change
 #define BRAKE_TIME 100000 // 100 ms 
-#define MIN_RPM 80
-#define MAX_RPM 530
+#define LOOP_TICKS 850 // ticks for one loop
+#define MIN_RPM 8000
+#define MAX_RPM 26500
 
 /* robot control configurations END */
 
