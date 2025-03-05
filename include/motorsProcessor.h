@@ -53,7 +53,11 @@ public:
     }
 
     int getRPM () {
-        return currentRPM;
+        // Read the current encoder count
+        int encoderTicks = rc_encoder_read(motorNumber);
+        // Reset the encoder counter after reading
+        rc_encoder_write(motorNumber, 0);
+        return encoderTicks;
     }
 
 private:	
