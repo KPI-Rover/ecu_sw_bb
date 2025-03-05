@@ -7,8 +7,15 @@ For the first time, the Beaglebone board should be prepared. Please refer to the
 
 ## Download Source Code
 ```
-git clone git@github.com:KPI-Rover/ecu_sw_bb.git
+git clone --recurse-submodules git@github.com:KPI-Rover/ecu_sw_bb.git
 cd ecu_sw_bb
+```
+
+Alternatively, if you've already cloned the repository without submodules:
+```
+cd ecu_sw_bb
+git submodule init
+git submodule update
 ```
 
 ## Preparing Beaglebone Blue Board
