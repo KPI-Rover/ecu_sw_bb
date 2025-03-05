@@ -9,8 +9,7 @@ find_package(Threads REQUIRED)
 # Update include path to be relative to this CMakeLists.txt location
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 	
-set(SOURCE_FILES
-    src/main.cpp
+set(LIB_SOURCE_FILES
     src/TCPServerReceiver.cpp
     src/motorsProcessor.cpp
 )
@@ -21,16 +20,17 @@ set(HEADER_FILES
     include/motorsProcessor.h		
 )
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
-
-# Add include directories to target properties
-target_include_directories(${PROJECT_NAME} PRIVATE
+# Create library target
+add_library(${PROJECT_NAME}_lib STATIC ${LIB_SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(${PROJECT_NAME}_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# Link the pthread library and robotcontrol
-target_link_libraries(${PROJECT_NAME} PRIVATE 
-    Threads::Threads
-    robotcontrol
+# Link appropriate dependencies based on platform
+target_link_libraries(${PROJECT_NAME}_lib PUBLIC 
+        Threads::Threads
+        robotcontrol
 )
 
+add_executable(${PROJECT_NAME} src/main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)
