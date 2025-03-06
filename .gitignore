@@ -6,3 +6,4 @@ CMakeFiles/
 build/*
 .vscode
 tcp-server/*
+rootfs/
