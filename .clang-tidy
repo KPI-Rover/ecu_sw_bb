@@ -1,0 +1,75 @@
+Checks: >
+  google-*,
+  clang-analyzer-*,
+  modernize-*,
+  readability-*,
+  performance-*,
+  cert-*,
+  concurrency-*,
+  misc-*,
+  portability-*,
+  cppcoreguidelines-*,
+  misc-definitions-in-headers,
+  -modernize-use-trailing-return-type,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic
+
+
+CheckOptions:
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase  # Classes should use CamelCase
+    
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase  # Structs should use CamelCase
+
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase  # Enums should use CamelCase
+
+  - key: readability-identifier-naming.EnumConstantCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumConstantPrefix
+    value: k  # Google style: kEnumValue
+
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase  # Google style: Functions use CamelCase, not camelCase
+
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case  # Google style: snake_case for variables
+
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case  # Google style: snake_case for member variables
+    
+  - key: readability-identifier-naming.MemberSuffix
+    value: _  # Google style: member variables have trailing underscore
+
+  - key: readability-identifier-naming.PrivateMemberSuffix
+    value: _  # Private members have underscore suffix in Google style
+
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: lower_case  # Global variables use snake_case
+    
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: CamelCase
+  - key: readability-identifier-naming.GlobalConstantPrefix
+    value: k  # Google style: kCamelCase
+
+  - key: readability-identifier-naming.StaticVariableCase
+    value: lower_case  # Static variables use snake_case
+
+  - key: readability-identifier-naming.StaticConstantCase
+    value: CamelCase
+  - key: readability-identifier-naming.StaticConstantPrefix
+    value: k  # Static constants use kCamelCase
+
+  - key: readability-identifier-naming.ConstantCase
+    value: CamelCase
+  - key: readability-identifier-naming.ConstantPrefix
+    value: k  # Constants use kCamelCase
+
+  - key: readability-identifier-naming.MacroCase
+    value: UPPER_CASE  # Macros use UPPER_CASE
+
+  - key: readability-identifier-naming.TypedefCase
+    value: CamelCase  # Typedefs use CamelCase
+
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case  # Namespaces use snake_case

@@ -1,14 +1,17 @@
 #!/bin/bash
 
+# Ensure build directory exists
+mkdir -p build/target
+
 # Check if the "nocache" argument is passed
 if [[ "$1" == "nocache" ]]; then
     echo "-- Clearing CMake cache..."
-    rm -rf build/*
+    rm -rf build/target/*
 fi
 
 # Run the Docker container with CMake commands
 docker run -it --rm \
     -u $(id -u ${USER}):$(id -g ${USER}) \
-    -v $(pwd):/work \
-    kpi-rover-bbb \
-    bash -c "cmake -B build -H. && cmake --build build -- -j$(nproc)"
+    -v $(pwd):/workspace \
+    kpi-rover-bbb-build \
+    bash -c "cmake -B build/target -H. && cmake --build build/target -- -j$(nproc)"
