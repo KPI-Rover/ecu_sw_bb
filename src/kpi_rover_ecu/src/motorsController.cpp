@@ -1,7 +1,8 @@
-#include "motorsProcessor.h"
+#include "motorsController.h"
 #include "config.h"
+#include "motor.h"
 
-int MotorProcessor::init(const int* motorsArray) {
+int MotorController::init(const int* motorsArray) {
     if(rc_kill_existing_process(2.0)<-2) {
         perror("[ERROR][RC] rc_kill_existing process: ");
         return -1;
@@ -42,7 +43,7 @@ int MotorProcessor::init(const int* motorsArray) {
     return 0;
 }
 
-int MotorProcessor::setMotorRPM(int channel, int newRPM) {
+int MotorController::setMotorRPM(int channel, int newRPM) {
     if (abs(newRPM) > MIN_RPM) {
         if (newRPM >= MAX_RPM) {
             cout << "[INFO][RC] Set RPM to max value" << endl;
@@ -70,7 +71,7 @@ int MotorProcessor::setMotorRPM(int channel, int newRPM) {
 
 }
 
-int MotorProcessor::stopMotor(int channel) {
+int MotorController::stopMotor(int channel) {
     
     if (motors[channel-MOTOR_ID_START].motorStop()  != 0) {
         cout << "[ERROR][RC] Error while stoppping motor" << endl;
@@ -81,13 +82,13 @@ int MotorProcessor::stopMotor(int channel) {
     return 0;
 }
 
-void MotorProcessor::destroy() {
+void MotorController::destroy() {
     delete[] motors;
     rc_motor_cleanup();
     rc_encoder_cleanup();
 }
 
-int MotorProcessor::getMotorRPM(int channel) {
+int MotorController::getMotorRPM(int channel) {
     return motors[channel-MOTOR_ID_START].getRPM();
 }
 

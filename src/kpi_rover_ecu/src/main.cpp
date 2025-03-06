@@ -1,6 +1,6 @@
 #include "TCPServerReceiver.h"
-#include "motorsProcessor.h"
 #include "config.h"
+#include "motorsController.h"
 using namespace std;
 
 
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     sem_init(&stopProgramSem, 0, 0);
     
 
-    MotorProcessor motors_processor;
+    MotorController motors_processor;
     TCPServer server(server_address, server_portnum, &motors_processor, &stopProgramSem);
 
     if (server.init()  == -1) {
