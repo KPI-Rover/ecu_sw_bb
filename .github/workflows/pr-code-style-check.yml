@@ -29,12 +29,18 @@ jobs:
 
       - name: Check formatting with clang-format
         run: |
-          if echo "$FILES" | xargs clang-format --dry-run --Werror; then
-            echo "✅ Code formatting is correct."
-          else
-            echo "❌ Code formatting issues found! Run 'clang-format -i <file>' before committing."
+          ERROR=0
+          for file in $FILES; do
+            echo "🔍 Checking formatting for: $file"
+            diff -u "$file" <(clang-format "$file") || ERROR=1
+          done
+          if [[ $ERROR -eq 1 ]]; then
+            echo "❌ Formatting issues detected! Run 'clang-format -i <file>' to fix them."
             exit 1
+          else
+            echo "✅ Code formatting is correct."
           fi
+
 
       - name: Check code quality with clang-tidy
         run: |
