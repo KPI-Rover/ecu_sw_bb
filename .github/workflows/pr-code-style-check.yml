@@ -31,8 +31,11 @@ jobs:
         run: |
           ERROR=0
           for file in $FILES; do
-            echo "🔍 Checking formatting for: $file"
-            diff -u "$file" <(clang-format "$file") || ERROR=1
+            OUTPUT=$(clang-format --dry-run --Werror "$file" 2>&1)
+            if [[ $? -ne 0 ]]; then
+              echo "::error file=$file::$OUTPUT"
+              ERROR=1
+            fi
           done
           if [[ $ERROR -eq 1 ]]; then
             echo "❌ Formatting issues detected! Run 'clang-format -i <file>' to fix them."
