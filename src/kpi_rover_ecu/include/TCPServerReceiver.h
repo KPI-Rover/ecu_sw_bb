@@ -2,7 +2,7 @@
 #define TCPSERVERRECEIVER_H
 
 #include "config.h"
-#include "motorsProcessor.h"
+#include "motorsController.h"
 
 using namespace std;
 
@@ -14,9 +14,9 @@ public:
     int server_portnum;
 
     sem_t *progSemaphore;
-    MotorProcessor *commandProcessor;
+    MotorController *commandProcessor;
 
-    TCPServer(const char *ip_address, int port, MotorProcessor *proc, sem_t *sem) {
+    TCPServer(const char *ip_address, int port, MotorController *proc, sem_t *sem) {
         server_address = new char[strlen(ip_address) + 1 ];
         strcpy(server_address, ip_address);
 
