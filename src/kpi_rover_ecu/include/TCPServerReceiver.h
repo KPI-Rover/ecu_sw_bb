@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "motorsController.h"
+#include "protocolHandler.h"
 
 using namespace std;
 
@@ -14,13 +15,13 @@ public:
     int server_portnum;
 
     sem_t *progSemaphore;
-    MotorController *commandProcessor;
+    ProtocolHanlder *protocolHandler_;
 
-    TCPServer(const char *ip_address, int port, MotorController *proc, sem_t *sem) {
+    TCPServer(const char *ip_address, int port, ProtocolHanlder *pHandler, sem_t *sem) {
         server_address = new char[strlen(ip_address) + 1 ];
         strcpy(server_address, ip_address);
 
-        commandProcessor = proc; // set for using motorProcess class inside our tcp server
+        protocolHandler_ = pHandler;
         progSemaphore = sem;
 
         server_portnum = port;

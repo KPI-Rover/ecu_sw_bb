@@ -4,6 +4,7 @@
 
 /* START of Including of main libs */
 #include <cstring>
+#include <vector>
 #include <cmath>
 #include <iostream>
 #include <unistd.h>
