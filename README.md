@@ -2,10 +2,9 @@
 
 For the first time, the Beaglebone board should be prepared. Please refer to the section [Preparing Beaglebone Blue Board](#Preparing-Beaglebone-Blue-Board).
 
-## Communication between BBB and ROS2
-![BBB2ROS](./docs/BBB2ROS.png)
+## Build project and deploy on BBB
 
-## Download Source Code
+### Download Source Code
 ```
 git clone --recurse-submodules git@github.com:KPI-Rover/ecu_sw_bb.git
 cd ecu_sw_bb
@@ -17,6 +16,67 @@ cd ecu_sw_bb
 git submodule init
 git submodule update
 ```
+
+### Build Docker Image
+```
+docker build -t kpi-rover-bbb-build -f docker/Dockerfile.build .
+
+docker build -t kpi-rover-bbb-check -f docker/Dockerfile.check .
+```
+
+### Build application using Docker
+```bash
+./build.sh
+```
+
+### Upload binary file to Beaglebone Blue
+```bash
+export BBB_HOST=debian@<BeagleBone Blue IP>
+./deploy.sh
+```
+
+## Run software on BBB
+
+### Connect to board using SSH 
+Using USB over network
+
+```
+ssh debian@192.168.7.2:~
+password: temppwd
+```
+
+If you set wireless interface
+
+```
+ssh debian@<bbb_local_ip>:~
+password: temppwd
+```
+
+### Run program
+```
+./kpi_rover_ecu -a 0.0.0.0 -p 6000
+```
+## Code Style Check and Static Code Analysis
+
+### Importance
+Consistent code style and static code analysis are essential for maintaining high-quality software:
+- **Code Readability**: Consistent style makes code easier to read and understand for all team members
+- **Error Prevention**: Static analysis helps identify potential bugs, memory leaks, and undefined behavior before runtime
+- **Maintainability**: Standardized code is easier to maintain and extend over time
+- **Collaboration**: Unified coding conventions improve team collaboration and onboarding process
+
+### Standards
+This project follows the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html), which provides comprehensive guidelines for C++ coding conventions.
+
+### Continuous Integration
+GitHub CI is configured to automatically verify code style and perform static analysis on each Pull Request. PRs failing these checks cannot be merged until issues are resolved, ensuring code quality standards are maintained throughout the development process.
+
+### Local Verification
+To check code style and run static analysis locally before committing:
+```bash
+./check_cs.sh
+```
+This script will identify any style violations or potential issues in your code, allowing you to fix them before pushing your changes.
 
 ## Preparing Beaglebone Blue Board
 
@@ -130,46 +190,6 @@ sudo systemctl start rc_battery_monitor
 
 sudo systemctl enable robotcontrol
 sudo systemctl start robotcontrol
-```
-
-## Build of project and loading on BBB
-
-### Build Docker Image
-```
-docker build -t kpi-rover-bbb .
-```
-
-### Build application using Docker
-```bash
-./build.sh
-```
-
-### Upload binary file to Beaglebone Blue
-```bash
-export BBB_HOST=debian@<BeagleBone Blue IP>
-./deploy.sh
-```
-
-## Running
-
-### Connect to board using SSH 
-Using USB over network
-
-```
-ssh debian@192.168.7.2:~
-password: temppwd
-```
-
-If you set wireless interface
-
-```
-ssh debian@<bbb_local_ip>:~
-password: temppwd
-```
-
-### Run program
-```
-./kpi_rover_ecu -a 0.0.0.0 -p 6000
 ```
 
 ## Fixing probable issues while debugging or testing

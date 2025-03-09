@@ -1,0 +1,37 @@
+#######################################################
+# Dockerfile for the Beaglebone blue cross compilation
+#######################################################
+
+FROM ubuntu:24.04
+
+RUN apt-get update -q && \
+    apt-get install -y -q \
+    gcc-arm-linux-gnueabihf \
+    g++-arm-linux-gnueabihf \
+    clang-format \
+    clang-tidy \
+    cppcheck \
+    python3 \
+    python3-pip \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# RUN ln -s /usr/bin/arm-linux-gnueabihf-g++-8 /usr/bin/arm-linux-gnueabihf-g++ && \
+#     ln -s /usr/bin/arm-linux-gnueabihf-gcc-8 /usr/bin/arm-linux-gnueabihf-gcc && \
+#     ln -s /usr/bin/arm-linux-gnueabihf-cpp-8 /usr/bin/arm-linux-gnueabihf-cpp
+    
+ENV AS=/usr/bin/arm-linux-gnueabihf-as \
+    AR=/usr/bin/arm-linux-gnueabihf-ar \
+    CC=/usr/bin/arm-linux-gnueabihf-gcc \
+    CPP=/usr/bin/arm-linux-gnueabihf-cpp \
+    CXX=/usr/bin/arm-linux-gnueabihf-g++ \
+    LD=/usr/bin/arm-linux-gnueabihf-ld
+
+RUN echo "alias ll='ls -alF --color=auto'" >> /etc/bash.bashrc
+
+RUN apt-get update -q && \
+    apt-get install -y -q \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
