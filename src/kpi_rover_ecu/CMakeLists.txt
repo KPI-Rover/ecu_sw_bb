@@ -14,13 +14,15 @@ set(SOURCE_FILES
     src/TCPServerReceiver.cpp
     src/motorsController.cpp
     src/motor.cpp
+    src/protocolHandler.cpp
 )
 
 set(HEADER_FILES
     include/TCPServerReceiver.h
     include/config.h 
     include/motorsController.h
-    include/motor.h		
+    include/motor.h
+    include/protocolHandler.h		
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})

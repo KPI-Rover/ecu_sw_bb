@@ -1,6 +1,7 @@
 #include "TCPServerReceiver.h"
 #include "config.h"
 #include "motorsController.h"
+#include "protocolHandler.h"
 using namespace std;
 
 
@@ -33,7 +34,9 @@ int main(int argc, char* argv[]) {
     
 
     MotorController motors_processor;
-    TCPServer server(server_address, server_portnum, &motors_processor, &stopProgramSem);
+    motors_processor.init(SHASSIARR);
+    ProtocolHanlder protocolHandler_(&motors_processor);
+    TCPServer server(server_address, server_portnum, &protocolHandler_, &stopProgramSem);
 
     if (server.init()  == -1) {
         cout << "[ERROR] Error creating socket" << endl;
@@ -54,7 +57,7 @@ int main(int argc, char* argv[]) {
     cout << "Stopping ..." << endl;
 
     server.destroy();
-    
+    motors_processor.destroy();
     
     return 0;
 }

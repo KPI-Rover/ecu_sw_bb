@@ -59,10 +59,12 @@ int MotorController::setMotorRPM(int channel, int newRPM) {
         }
         
     } else {
-        cout << "[INFO][RC] Set RPM to stop because RPM less than MIN_RPM" << endl;
-
+        if (abs(newRPM) != 0) {
+            cout << "[INFO][RC] Set RPM to stop because RPM less than MIN_RPM" << endl;
+        }
+        
         if (motors[channel-MOTOR_ID_START].motorStop() != 0) {
-            cout << "[ERROR][RC] Error while stet new RPM" << endl;
+            cout << "[ERROR][RC] Error while set new RPM" << endl;
             return -1;
         }
     }
