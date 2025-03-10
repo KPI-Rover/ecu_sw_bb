@@ -8,7 +8,7 @@ if [ -z "$BBB_HOST" ]; then
 fi
 
 # Deploy the software using scp
-scp build/src/kpi_rover_ecu/kpi_rover_ecu "$BBB_HOST":~
+scp build/target/src/kpi_rover_ecu/kpi_rover_ecu "$BBB_HOST":~
 
 # Check if scp was successful
 if [ $? -eq 0 ]; then
