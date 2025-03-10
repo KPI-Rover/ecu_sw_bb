@@ -17,16 +17,8 @@ public:
     sem_t *progSemaphore;
     ProtocolHanlder *protocolHandler_;
 
-    TCPServer(const char *ip_address, int port, ProtocolHanlder *pHandler, sem_t *sem) {
-        server_address = new char[strlen(ip_address) + 1 ];
-        strcpy(server_address, ip_address);
+    TCPServer(const char *ip_address, int port, ProtocolHanlder *pHandler, sem_t *sem);
 
-        protocolHandler_ = pHandler;
-        progSemaphore = sem;
-
-        server_portnum = port;
-    };
-    
     static void* serverThreadFuncWrapper(void *arg) {
         reinterpret_cast<TCPServer*>(arg)->serverThreadFunc();
         return nullptr;	

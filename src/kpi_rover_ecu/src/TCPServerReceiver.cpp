@@ -40,6 +40,17 @@ char* get_primary_ip() {
     return host;
 }
 
+TCPServer::TCPServer(const char *ip_address, int port, ProtocolHanlder *pHandler, sem_t *sem) {
+    server_address = new char[strlen(ip_address) + 1 ];
+    strcpy(server_address, ip_address);
+
+    protocolHandler_ = pHandler;
+    progSemaphore = sem;
+
+    server_portnum = port;
+}
+
+
 
 int TCPServer::init() {
     /*
@@ -203,8 +214,6 @@ void* TCPServer::timerThreadFunc() {
 
     return NULL;	
 }
-
-
 
 int TCPServer::start() {
     /* 
