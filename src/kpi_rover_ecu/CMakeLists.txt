@@ -11,18 +11,19 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 	
 set(SOURCE_FILES
     src/main.cpp
-    src/TCPServerReceiver.cpp
     src/motorsController.cpp
     src/motor.cpp
     src/protocolHandler.cpp
+    src/TCPTransport.cpp
 )
 
 set(HEADER_FILES
-    include/TCPServerReceiver.h
     include/config.h 
     include/motorsController.h
     include/motor.h
-    include/protocolHandler.h		
+    include/protocolHandler.h
+    include/TCPTransport.h 
+    include/ITransport.h	
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
