@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <resolv.h>
+#include <thread>
+#include <atomic>
 #include <pthread.h>
 #include <csignal>
 #include <getopt.h>
