@@ -5,8 +5,9 @@
 TCPTransport::TCPTransport(const char *ip_address, int port) {
 	server_address = new char[strlen(ip_address) + 1 ];
     strcpy(server_address, ip_address);
-
 	server_portnum = port;
+
+	running = true;
 }
 
 int TCPTransport::init() {
@@ -54,12 +55,12 @@ int TCPTransport::init() {
 }
 
 void TCPTransport::start() {
-	acceptThread = std::thread([this]() {
+	acceptThread = thread([this]() {
 		while (running) {
-			std::cout << "Waiting for connection..." << std::endl;
+			cout << "Waiting for connection..." << endl;
 			client_sockfd = accept(sockfd, nullptr, nullptr);
 			if (client_sockfd >= 0) {
-				std::cout << "Client connected." << std::endl;
+				cout << "Client connected." << endl;
 			}
 		}
 	});

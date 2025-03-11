@@ -2,13 +2,14 @@
 
 using namespace std;
 
-Motor::Motor(int assignedNumber) {
+Motor::Motor(int assignedNumber, bool isInverted) {
     motorNumber = assignedNumber;
+    inverted = isInverted;
 }
 
 int Motor::motorGo(int newRPM) {
     currentDutyCycle = getDC(newRPM);
-    if (motorNumber >= MOTOR_INVERTED) {
+    if (inverted) {
         currentDutyCycle = -currentDutyCycle;
     }
 
