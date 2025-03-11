@@ -3,7 +3,7 @@
 #include "motor.h"
 #include "motorConfig.h"
 
-int MotorController::init(MotorConfig _motors[]) {
+int MotorController::init(MotorConfig _motors[], uint8_t _motorNumber) {
     if(rc_kill_existing_process(2.0)<-2) {
         perror("[ERROR][RC] rc_kill_existing process: ");
         return -1;
@@ -26,27 +26,12 @@ int MotorController::init(MotorConfig _motors[]) {
         perror("[ERROR][RC] failed to start with frequency");
         return -1;
     }
-    
-    Motor* result = new Motor[4] {
-        Motor(_motors[0].getNumber(), _motors[0].isInverted()),
-        Motor(_motors[1].getNumber(), _motors[1].isInverted()),
-        Motor(_motors[2].getNumber(), _motors[2].isInverted()),
-        Motor(_motors[3].getNumber(), _motors[3].isInverted())
-    };
 
-    // Motor* result = new Motor[4] {
-    //     Motor(*(motorsArray + 0)),
-    //     Motor(*(motorsArray + 1)),
-    //     Motor(*(motorsArray + 2)),
-    //     Motor(*(motorsArray + 3))
-    
-    // };
-    
-    if (result == nullptr) {
-        perror("[ERROR][RC] allocating memory");
-        return -1;
+    motorNumber = _motorNumber;
+
+    for (int i = 0; i < motorNumber; ++i) {
+        motors.push_back(Motor(_motors[i].getNumber(), _motors[i].isInverted()));
     }
-    motors = result;
 
     return 0;
 }
@@ -93,7 +78,7 @@ int MotorController::stopMotor(int channel) {
 }
 
 void MotorController::destroy() {
-    delete[] motors;
+    //delete[] motors;
     rc_motor_cleanup();
     rc_encoder_cleanup();
 }
