@@ -47,14 +47,15 @@ int main(int argc, char* argv[]) {
 
 
     MotorController motors_processor;
-    MotorConfig shassis_array[4] = {
+    uint8_t motorNumber = 4;
+    MotorConfig shassis_array[] = {
         MotorConfig(1, false),
         MotorConfig(2, false),
         MotorConfig(3, true),
         MotorConfig(4, true)
     };
 
-    motors_processor.init(shassis_array);
+    motors_processor.init(shassis_array, motorNumber);
     ProtocolHanlder protocolHandler_(&motors_processor);
     counter.store(get_counter());
     thread timerThread(timerThreadFuction, &protocolHandler_);
