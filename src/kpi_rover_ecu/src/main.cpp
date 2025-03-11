@@ -3,6 +3,7 @@
 #include "config.h"
 #include "motorsController.h"
 #include "protocolHandler.h"
+#include "motorConfig.h"
 using namespace std;
 
 
@@ -44,8 +45,16 @@ int main(int argc, char* argv[]) {
     //sem_init(&stopProgramSem, 0, 0);
     
 
+
     MotorController motors_processor;
-    motors_processor.init(SHASSIARR);
+    MotorConfig shassis_array[4] = {
+        MotorConfig(1, false),
+        MotorConfig(2, false),
+        MotorConfig(3, true),
+        MotorConfig(4, true)
+    };
+
+    motors_processor.init(shassis_array);
     ProtocolHanlder protocolHandler_(&motors_processor);
     counter.store(get_counter());
     thread timerThread(timerThreadFuction, &protocolHandler_);
@@ -63,7 +72,10 @@ int main(int argc, char* argv[]) {
     signal(SIGINT, interruptSignalHandler); // initializing of custom signal handlers
     signal(SIGTERM, interruptSignalHandler); // initializing of custom signal handlers
 
+    cout << "start to boot socket server" << endl;
     TcpTransport_.start();
+
+    cout << "starting main cycle" << endl;
 
     while (true) {
         if (runningProgram) {
