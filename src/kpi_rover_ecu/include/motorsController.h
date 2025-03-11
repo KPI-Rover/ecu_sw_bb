@@ -3,12 +3,14 @@
 
 #include "config.h"
 #include "motor.h"
+#include "motorConfig.h"
 
 class MotorController {
 public:
     Motor* motors;
+    uint8_t motorNumber;
     
-    int init(const int* motorsArray);
+    int init(MotorConfig _motors[]);
     
     int setMotorRPM(int channel, int newRPM);
     int stopMotor(int channel);

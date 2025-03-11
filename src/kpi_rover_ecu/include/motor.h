@@ -5,14 +5,14 @@
 
 class Motor {
 public:
-    int motorNumber;
-
-    Motor(int assignedNumber);
+    Motor(int assignedNumber, bool isInverted);
     int motorGo(int newRPM);
     int motorStop();
     int getRPM();
 
 private:
+    int motorNumber;
+    bool inverted;
     double currentDutyCycle;
     double getDC(int entryRPM);
 };

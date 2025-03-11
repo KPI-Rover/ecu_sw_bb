@@ -1,8 +1,9 @@
 #include "motorsController.h"
 #include "config.h"
 #include "motor.h"
+#include "motorConfig.h"
 
-int MotorController::init(const int* motorsArray) {
+int MotorController::init(MotorConfig _motors[]) {
     if(rc_kill_existing_process(2.0)<-2) {
         perror("[ERROR][RC] rc_kill_existing process: ");
         return -1;
@@ -27,12 +28,19 @@ int MotorController::init(const int* motorsArray) {
     }
     
     Motor* result = new Motor[4] {
-        Motor(*(motorsArray + 0)),
-        Motor(*(motorsArray + 1)),
-        Motor(*(motorsArray + 2)),
-        Motor(*(motorsArray + 3))
-    
+        Motor(_motors[0].getNumber(), _motors[0].isInverted()),
+        Motor(_motors[1].getNumber(), _motors[1].isInverted()),
+        Motor(_motors[2].getNumber(), _motors[2].isInverted()),
+        Motor(_motors[3].getNumber(), _motors[3].isInverted())
     };
+
+    // Motor* result = new Motor[4] {
+    //     Motor(*(motorsArray + 0)),
+    //     Motor(*(motorsArray + 1)),
+    //     Motor(*(motorsArray + 2)),
+    //     Motor(*(motorsArray + 3))
+    
+    // };
     
     if (result == nullptr) {
         perror("[ERROR][RC] allocating memory");
@@ -47,12 +55,12 @@ int MotorController::setMotorRPM(int channel, int newRPM) {
     if (abs(newRPM) > MIN_RPM) {
         if (newRPM >= MAX_RPM) {
             cout << "[INFO][RC] Set RPM to max value" << endl;
-            if (motors[channel-MOTOR_ID_START].motorGo(MAX_RPM) != 0) {
+            if (motors[channel].motorGo(MAX_RPM) != 0) {
                 cout << "[ERROR][RC] Error while stet new RPM" << endl;
                 return -1;
             }
         } else {
-            if (motors[channel-MOTOR_ID_START].motorGo(newRPM)  != 0) {
+            if (motors[channel].motorGo(newRPM)  != 0) {
                 cout << "[ERROR][RC] Error while stet new RPM" << endl;
                 return -1;
             }
@@ -63,7 +71,7 @@ int MotorController::setMotorRPM(int channel, int newRPM) {
             cout << "[INFO][RC] Set RPM to stop because RPM less than MIN_RPM" << endl;
         }
         
-        if (motors[channel-MOTOR_ID_START].motorStop() != 0) {
+        if (motors[channel].motorStop() != 0) {
             cout << "[ERROR][RC] Error while set new RPM" << endl;
             return -1;
         }
@@ -75,7 +83,7 @@ int MotorController::setMotorRPM(int channel, int newRPM) {
 
 int MotorController::stopMotor(int channel) {
     
-    if (motors[channel-MOTOR_ID_START].motorStop()  != 0) {
+    if (motors[channel].motorStop()  != 0) {
         cout << "[ERROR][RC] Error while stoppping motor" << endl;
         return -1;
     }
@@ -91,7 +99,7 @@ void MotorController::destroy() {
 }
 
 int MotorController::getMotorRPM(int channel) {
-    return motors[channel-MOTOR_ID_START].getRPM();
+    return motors[channel].getRPM();
 }
 
 
