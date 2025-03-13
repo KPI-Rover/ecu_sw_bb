@@ -14,7 +14,7 @@ int Motor::motorGo(int newRPM) {
     }
 
     if (rc_motor_set(motorNumber, currentDutyCycle) != 0) {
-        cout << "[ERROR][RC] rc_motor_set" << endl;
+        std::cout << "[ERROR][RC] rc_motor_set" << '\n';
         return -1;
     }
 
@@ -23,14 +23,14 @@ int Motor::motorGo(int newRPM) {
 
 int Motor::motorStop() {
     if (rc_motor_brake(motorNumber) != 0) {
-        cout << "[ERROR][RC] rc_motor_brake" << endl;
+        std::cout << "[ERROR][RC] rc_motor_brake" << '\n';
         return -1;
     }
 
     rc_usleep(BRAKE_TIME);
 
     if (rc_motor_free_spin(motorNumber) != 0) {
-        cout << "[ERROR][RC] rc_motor_free_spin" << endl;
+        std::cout << "[ERROR][RC] rc_motor_free_spin" << '\n';
         return -1;
     }
 
@@ -38,7 +38,7 @@ int Motor::motorStop() {
 }
 
 int Motor::getRPM() {
-    int encoderTicks = rc_encoder_read(motorNumber);
+    const int encoderTicks = rc_encoder_read(motorNumber);
     rc_encoder_write(motorNumber, 0);
     return encoderTicks;
 }
