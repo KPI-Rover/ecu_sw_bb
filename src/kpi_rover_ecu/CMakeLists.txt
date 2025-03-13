@@ -16,6 +16,7 @@ set(SOURCE_FILES
     src/protocolHandler.cpp
     src/TCPTransport.cpp
     src/motorConfig.cpp
+    src/messageQueue.cpp
 )
 
 set(HEADER_FILES
@@ -25,7 +26,8 @@ set(HEADER_FILES
     include/protocolHandler.h
     include/TCPTransport.h 
     include/ITransport.h
-    include/motorConfig.h	
+    include/motorConfig.h
+    include/messageQueue.h	
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})

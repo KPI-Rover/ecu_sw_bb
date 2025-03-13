@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "ITransport.h"
+#include "messageQueue.h"
 
 class TCPTransport : public ITransport {
 public:
@@ -21,6 +22,8 @@ private:
 	int server_portnum;
 	atomic<bool> running;
 	thread acceptThread;
+
+	MessageQueue messageQueue_;
 
 };
 
