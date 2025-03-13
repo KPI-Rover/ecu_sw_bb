@@ -4,17 +4,17 @@
 #include "config.h"
 
 class Motor {
-public:
+   public:
     Motor(int assignedNumber, bool isInverted);
     int motorGo(int newRPM);
     int motorStop();
     int getRPM();
 
-private:
+   private:
     int motorNumber;
     bool inverted;
     double currentDutyCycle;
     double getDC(int entryRPM);
 };
 
-#endif // MOTOR_H
+#endif  // MOTOR_H

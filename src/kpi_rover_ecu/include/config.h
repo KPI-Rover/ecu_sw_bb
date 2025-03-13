@@ -1,45 +1,42 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-
 /* START of Including of main libs */
-#include <cstring>
-#include <vector>
-#include <cmath>
-#include <iostream>
-#include <unistd.h>
-#include <errno.h>
-#include <resolv.h>
-#include <thread>
-#include <queue>
-#include <mutex>
-#include <condition_variable>
-#include <atomic>
-#include <pthread.h>
-#include <csignal>
-#include <getopt.h>
-#include <robotcontrol.h>
-
-#include <netinet/in.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
+#include <errno.h>
+#include <getopt.h>
 #include <ifaddrs.h>
 #include <netdb.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <resolv.h>
+#include <robotcontrol.h>
 #include <semaphore.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <atomic>
+#include <cmath>
+#include <condition_variable>
+#include <csignal>
+#include <cstring>
+#include <iostream>
+#include <mutex>
+#include <queue>
+#include <thread>
+#include <vector>
 /* END of including of main libs */
 
 using namespace std;
 
-
-
-
 /* Server configurations START */
-#define NUMSLOTS 5 // how many connections can server process
-#define BUFFERSIZE 64 // maximum size of buffer
-#define TIMERPRECISION 100000 // 100 miliseconds in microsecond (for timer) 
-#define ONESECONDMICRO 1000000 // 1 s in microseconds
-#define TIMESTOP 1 // 1 second befre stopping all motors. If no new command is received over TCP for 1 second, all motors must stop.
+#define NUMSLOTS 5              // how many connections can server process
+#define BUFFERSIZE 64           // maximum size of buffer
+#define TIMERPRECISION 100000   // 100 miliseconds in microsecond (for timer)
+#define ONESECONDMICRO 1000000  // 1 s in microseconds
+#define TIMESTOP \
+    1  // 1 second befre stopping all motors. If no new command is received over TCP for 1 second, all motors must stop.
 /* Server configurations END */
 
 /* robot control ccommands START */
@@ -53,12 +50,11 @@ using namespace std;
 
 /* robot control configurations START */
 #define MOTORS_NUMBER 4
-#define BRAKE_TIME 100000 // 100 ms 
-#define LOOP_TICKS 850 // ticks for one loop
+#define BRAKE_TIME 100000  // 100 ms
+#define LOOP_TICKS 850     // ticks for one loop
 #define MIN_RPM 8000
 #define MAX_RPM 26500
 
 /* robot control configurations END */
-
 
 #endif
