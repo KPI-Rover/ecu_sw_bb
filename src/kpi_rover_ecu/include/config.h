@@ -52,10 +52,7 @@ using namespace std;
 /* robot control commands END */
 
 /* robot control configurations START */
-//#define MOTOR_ID_START 0 // first motor designation
 #define MOTORS_NUMBER 4
-//const int SHASSIARR[MOTORS_NUMBER] = {1, 2, 3, 4}; // don't change
-//#define MOTOR_INVERTED 3 // don't change
 #define BRAKE_TIME 100000 // 100 ms 
 #define LOOP_TICKS 850 // ticks for one loop
 #define MIN_RPM 8000
