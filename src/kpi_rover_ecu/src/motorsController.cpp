@@ -1,22 +1,22 @@
 #include "motorsController.h"
+
 #include "config.h"
 #include "motor.h"
 #include "motorConfig.h"
 
 int MotorController::init(MotorConfig _motors[], uint8_t _motorNumber) {
-    if(rc_kill_existing_process(2.0)<-2) {
+    if (rc_kill_existing_process(2.0) < -2) {
         perror("[ERROR][RC] rc_kill_existing process: ");
         return -1;
     }
-        // start signal handler so we can exit cleanly
+    // start signal handler so we can exit cleanly
 
-    if(rc_enable_signal_handler()==-1){
-        fprintf(stderr,"[ERROR][RC] failed to start signal handler\n");
-            //return nullptr;
+    if (rc_enable_signal_handler() == -1) {
+        fprintf(stderr, "[ERROR][RC] failed to start signal handler\n");
+        // return nullptr;
         return -1;
-    }	
-    
-    
+    }
+
     if (rc_motor_init_freq(RC_MOTOR_DEFAULT_PWM_FREQ) == -1) {
         perror("[ERROR][RC] failed to start with frequency");
         return -1;
@@ -45,17 +45,17 @@ int MotorController::setMotorRPM(int channel, int newRPM) {
                 return -1;
             }
         } else {
-            if (motors[channel].motorGo(newRPM)  != 0) {
+            if (motors[channel].motorGo(newRPM) != 0) {
                 cout << "[ERROR][RC] Error while stet new RPM" << endl;
                 return -1;
             }
         }
-        
+
     } else {
         if (abs(newRPM) != 0) {
             cout << "[INFO][RC] Set RPM to stop because RPM less than MIN_RPM" << endl;
         }
-        
+
         if (motors[channel].motorStop() != 0) {
             cout << "[ERROR][RC] Error while set new RPM" << endl;
             return -1;
@@ -63,32 +63,24 @@ int MotorController::setMotorRPM(int channel, int newRPM) {
     }
 
     return 0;
-
 }
 
 int MotorController::stopMotor(int channel) {
-    
-    if (motors[channel].motorStop()  != 0) {
+    if (motors[channel].motorStop() != 0) {
         cout << "[ERROR][RC] Error while stoppping motor" << endl;
         return -1;
     }
-    //cout << "[INFO][RC] Set RPM to stop because of command" << endl;
+    // cout << "[INFO][RC] Set RPM to stop because of command" << endl;
 
     return 0;
 }
 
 void MotorController::destroy() {
-    //delete[] motors;
+    // delete[] motors;
     rc_motor_cleanup();
     rc_encoder_cleanup();
 }
 
-int MotorController::getMotorRPM(int channel) {
-    return motors[channel].getRPM();
-}
+int MotorController::getMotorRPM(int channel) { return motors[channel].getRPM(); }
 
-
-//MotorProcessor proc;
-
-
-
+// MotorProcessor proc;

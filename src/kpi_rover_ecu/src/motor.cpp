@@ -43,6 +43,4 @@ int Motor::getRPM() {
     return encoderTicks;
 }
 
-double Motor::getDC(int entryRPM) {
-    return static_cast<double>(entryRPM) / MAX_RPM;
-}
+double Motor::getDC(int entryRPM) { return static_cast<double>(entryRPM) / MAX_RPM; }

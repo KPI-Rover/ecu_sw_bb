@@ -4,16 +4,16 @@
 #include "config.h"
 
 class MotorConfig {
-public:
-	MotorConfig(uint8_t assignedNumber, bool invertedStatus);
+   public:
+    MotorConfig(uint8_t assignedNumber, bool invertedStatus);
 
-	uint8_t getNumber();
+    uint8_t getNumber();
 
-	bool isInverted();
+    bool isInverted();
 
-private:
-	uint8_t number;
-	bool inverted;
+   private:
+    uint8_t number;
+    bool inverted;
 };
 
 #endif
