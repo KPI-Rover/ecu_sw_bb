@@ -5,24 +5,22 @@
 #include "protocolHandler.h"
 
 KPIRoverECU::KPIRoverECU(ProtocolHanlder* _protocolHandler, TCPTransport* _tcpTransport) {
-    protocolHandler = _protocolHandler;
-    tcpTransport = _tcpTransport;
+    protocol_handler_ = _protocolHandler;
+    tcp_transport_ = _tcpTransport;
     counter.store(get_counter());
 
-    runningProcess.store(true);
-    runningState.store(false);
+    runningProcess_.store(true);
+    runningState_.store(false);
 }
 
 bool KPIRoverECU::start() {
-    tcpTransport->start();
-    timerThread = thread([this] { timerThreadFuction(this->protocolHandler); });
+    tcp_transport_->start();
+    timerThread = thread([this] { timerThreadFuction(this->protocol_handler_); });
     processingThread = thread([this] { processingThreadFunction(); });
 
-    // timerThread = thread(timerThreadFuction, protocolHandler);
-    // processingThread = thread(processingThreadFunction, this);
 
     if (!timerThread.joinable() || !processingThread.joinable()) {
-        cout << "Error creating thread" << endl;
+        std::cout << "Error creating thread" << '\n';
         return false;
     }
 
@@ -38,13 +36,13 @@ void KPIRoverECU::timerThreadFuction(ProtocolHanlder* workClass) {
                           reinterpret_cast<uint8_t*>(&stopValue) + sizeof(int32_t));
     }
 
-    while (!runningState) {
+    while (!runningState_) {
         if (counter > 0) {
             usleep(TIMERPRECISION);
             counter--;
 
             if (counter == 0) {
-                cout << "[INFO] Motor set to stop" << endl;
+                std::cout << "[INFO] Motor set to stop" << '\n';
             }
 
         } else if (counter == 0) {
@@ -57,29 +55,29 @@ void KPIRoverECU::timerThreadFuction(ProtocolHanlder* workClass) {
 }
 
 void KPIRoverECU::processingThreadFunction() {
-    while (runningProcess) {
+    while (runningProcess_) {
         vector<uint8_t> message;
-        if (tcpTransport->receive(message)) {
+        if (tcp_transport_->receive(message)) {
             counter.store(get_counter());
-            vector<uint8_t> return_message = protocolHandler->handleMessage(message);
-            tcpTransport->send(return_message);
+            const vector<uint8_t> return_message = protocol_handler_->handleMessage(message);
+            tcp_transport_->send(return_message);
         }
     }
 }
 
 void KPIRoverECU::stop() {
-    cout << "END of program" << endl;
-    cout << "joining threads" << endl;
-    runningState = true;
+    std::cout << "END of program" << '\n';
+    std::cout << "joining threads" << '\n';
+    runningState_ = true;
     if (timerThread.joinable()) {
         timerThread.join();
     }
-    runningProcess = false;
+    runningProcess_ = false;
     if (processingThread.joinable()) {
         processingThread.join();
     }
-    cout << "destroying drivers" << endl;
-    tcpTransport->destroy();
+    std::cout << "destroying drivers" << '\n';
+    tcp_transport_->destroy();
 }
 
 int KPIRoverECU::get_counter() { return (TIMESTOP * ONESECONDMICRO) / TIMERPRECISION; }

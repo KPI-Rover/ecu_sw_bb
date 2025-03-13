@@ -12,8 +12,8 @@ class MotorConfig {
     bool isInverted();
 
    private:
-    uint8_t number;
-    bool inverted;
+    uint8_t number_;
+    bool inverted_;
 };
 
 #endif
