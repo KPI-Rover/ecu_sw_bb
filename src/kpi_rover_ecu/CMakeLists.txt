@@ -17,6 +17,7 @@ set(SOURCE_FILES
     src/TCPTransport.cpp
     src/motorConfig.cpp
     src/messageQueue.cpp
+    src/KPIRoverECU.cpp
 )
 
 set(HEADER_FILES
@@ -28,6 +29,7 @@ set(HEADER_FILES
     include/ITransport.h
     include/motorConfig.h
     include/messageQueue.h	
+    include/KPIRoverECU.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})

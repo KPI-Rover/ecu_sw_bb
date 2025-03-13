@@ -4,20 +4,13 @@
 #include "motorsController.h"
 #include "protocolHandler.h"
 #include "motorConfig.h"
+#include "KPIRoverECU.h"
 using namespace std;
 
 
-//sem_t stopProgramSem; /// global value of semaphor that is ckecked to stop rpogrma
 
-atomic<bool> runningProgram(false);
-atomic<bool> runningState(false);
-atomic<int> counter(0);
-
+atomic<bool> runningProgram(true);
 void interruptSignalHandler(int signal); 
-int get_counter();
-
-void timerThreadFuction(ProtocolHanlder *workClass);
-
 char* get_primary_ip();
 
 
@@ -57,8 +50,6 @@ int main(int argc, char* argv[]) {
 
     motors_processor.init(shassis_array, motorNumber);
     ProtocolHanlder protocolHandler_(&motors_processor);
-    counter.store(get_counter());
-    thread timerThread(timerThreadFuction, &protocolHandler_);
 
     TCPTransport TcpTransport_(server_address, server_portnum);
 
@@ -70,79 +61,24 @@ int main(int argc, char* argv[]) {
 
     cout << "start ..." << endl;
 
+    
+
+    KPIRoverECU kpiRoverECU(&protocolHandler_, &TcpTransport_);
+
+    if (!kpiRoverECU.start() ) {
+        cout << "Error In intitalizing main class" << endl;
+        return 1;
+    }
+
     signal(SIGINT, interruptSignalHandler); // initializing of custom signal handlers
     signal(SIGTERM, interruptSignalHandler); // initializing of custom signal handlers
 
-    cout << "start to boot socket server" << endl;
-    TcpTransport_.start();
+    while(runningProgram) {}
 
-    cout << "starting main cycle" << endl;
-
-    while (true) {
-        if (runningProgram) {
-            // TcpTransport_.destroy();
-            // motors_processor.destroy();
-            cout << "END of program" << endl;
-            cout << "joining threads" << endl;
-            runningState = true;
-            if (timerThread.joinable()) {
-                timerThread.join();
-            }
-            cout << "destroying drivers" << endl;
-            motors_processor.destroy();
-            TcpTransport_.destroy();
-            return 0;
-            //break;
-        }
-        vector<uint8_t> message;
-        if (TcpTransport_.receive(message)) {
-            counter.store(get_counter());
-            vector<uint8_t> return_message = protocolHandler_.handleMessage(message);
-            TcpTransport_.send(return_message);
-        }
-    }
-
-    
-    // sem_wait(&stopProgramSem);
-    // cout << "Stopping ..." << endl;
-
-    // server.destroy();
-    // motors_processor.destroy();
+    kpiRoverECU.stop();
+    motors_processor.destroy();
     
     return 0;
-}
-
-void timerThreadFuction(ProtocolHanlder *workClass) {
-    vector<uint8_t> stopVector;
-    int32_t stopValue  = 0;
-    stopVector.push_back(ID_SET_ALL_MOTORS_SPEED);
-    for (int i = 0; i < MOTORS_NUMBER; i++) {
-        stopVector.insert(stopVector.end(), 
-                      reinterpret_cast<uint8_t*>(&stopValue), 
-                      reinterpret_cast<uint8_t*>(&stopValue) + sizeof(int32_t));
-    }
-
-    while (!runningState) {
-        if (counter > 0) {
-            usleep(TIMERPRECISION);
-            counter--;
-
-            if (counter == 0 ) {
-                cout << "[INFO] Motor set to stop" << endl;
-            }
-
-        } else if (counter == 0) {
-            // command to stop all motors
-            workClass->handleMessage(stopVector);
-
-            sleep(TIMESTOP);
-            
-                
-        }
-            
-    }
-
-
 }
 
 char* get_primary_ip() {
@@ -183,15 +119,10 @@ char* get_primary_ip() {
     return host;
 }
 
-int get_counter() {
-    return  (TIMESTOP * ONESECONDMICRO) / TIMERPRECISION;
+void interruptSignalHandler(int signal) {
+
+    runningProgram = true;
+
 }
 
-void interruptSignalHandler(int signal) {
-    
-    cout << "Get signal to stop program" << endl;
-    runningProgram = true;
-    //sem_post(&stopProgramSem);
-    //exit(0);
-    
-}
+
