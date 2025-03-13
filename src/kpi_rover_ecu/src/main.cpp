@@ -7,7 +7,7 @@
 #include "protocolHandler.h"
 using namespace std;
 
-atomic<bool> runningProgram(true);
+atomic<bool> running_program(true);
 void interruptSignalHandler(int signal);
 char* get_primary_ip();
 
@@ -26,45 +26,45 @@ int main(int argc, char* argv[]) {
                 server_portnum = atoi(optarg);
                 break;
             default:
-                cerr << "Usage: " << argv[0] << endl;
-                cerr << " [-a server_address] " << endl;
-                cerr << " [-p server_portnum]" << endl;
+                cerr << "Usage: " << argv[0] << '\n';
+                cerr << " [-a server_address] " << '\n';
+                cerr << " [-p server_portnum]" << '\n';
                 return EXIT_FAILURE;
         }
     }
     // sem_init(&stopProgramSem, 0, 0);
 
     MotorController motors_processor;
-    uint8_t motorNumber = 4;
+    const uint8_t motor_number = 4;
     MotorConfig shassis_array[] = {MotorConfig(1, false), MotorConfig(2, false), MotorConfig(3, true),
                                    MotorConfig(4, true)};
 
-    motors_processor.init(shassis_array, motorNumber);
-    ProtocolHanlder protocolHandler_(&motors_processor);
+    motors_processor.init(shassis_array, motor_number);
+    ProtocolHanlder protocol_handler(&motors_processor);
 
-    TCPTransport TcpTransport_(server_address, server_portnum);
+    TCPTransport tcp_transport(server_address, server_portnum);
 
-    if (TcpTransport_.init() == -1) {
-        cout << "[ERROR] Error creating socket" << endl;
-        TcpTransport_.destroy();
+    if (tcp_transport.init() == -1) {
+        std::cout << "[ERROR] Error creating socket" << '\n';
+        tcp_transport.destroy();
         return 1;
     }
 
-    cout << "start ..." << endl;
+    std::cout << "start ..." << '\n';
 
-    KPIRoverECU kpiRoverECU(&protocolHandler_, &TcpTransport_);
+    KPIRoverECU kpi_rover_ecu(&protocol_handler, &tcp_transport);
 
-    if (!kpiRoverECU.start()) {
-        cout << "Error In intitalizing main class" << endl;
+    if (!kpi_rover_ecu.start()) {
+        std::cout << "Error In intitalizing main class" << '\n';
         return 1;
     }
 
     signal(SIGINT, interruptSignalHandler);   // initializing of custom signal handlers
     signal(SIGTERM, interruptSignalHandler);  // initializing of custom signal handlers
 
-    while (runningProgram) {}
+    while (running_program) {}
 
-    kpiRoverECU.stop();
+    kpi_rover_ecu.stop();
     motors_processor.destroy();
 
     return 0;
@@ -106,4 +106,4 @@ char* get_primary_ip() {
     return host;
 }
 
-void interruptSignalHandler(int signal) { runningProgram = false; }
+void interruptSignalHandler(int signal) { running_program = false; }

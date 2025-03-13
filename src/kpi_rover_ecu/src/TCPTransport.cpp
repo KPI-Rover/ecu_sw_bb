@@ -47,7 +47,7 @@ int TCPTransport::init() {
         return -1;
     }
 
-    cout << "[INFO] Started server on " << server_address << ":" << server_portnum << endl;
+    std::cout << "[INFO] Started server on " << server_address << ":" << server_portnum << '\n';
 
     return sockfd;
 }
@@ -55,18 +55,18 @@ int TCPTransport::init() {
 void TCPTransport::start() {
     acceptThread = thread([this]() {
         while (running) {
-            cout << "Waiting for connection..." << endl;
+            std::cout << "Waiting for connection..." << '\n';
             client_sockfd = accept(sockfd, nullptr, nullptr);
             if (client_sockfd >= 0) {
-                cout << "Client connected." << endl;
+                std::cout << "Client connected." << '\n';
                 while (1) {
                     uint8_t buffer[1024];
-                    ssize_t bytes_received = recv(client_sockfd, buffer, sizeof(buffer), 0);
+                    const ssize_t bytes_received = recv(client_sockfd, buffer, sizeof(buffer), 0);
                     if (bytes_received > 0) {
-                        vector<uint8_t> message(buffer, buffer + bytes_received);
+                        const vector<uint8_t> message(buffer, buffer + bytes_received);
                         messageQueue_.push(message);
                     } else {
-                        cout << "Client disconnected." << endl;
+                        std::cout << "Client disconnected." << '\n';
                         close(client_sockfd);
                         client_sockfd = -1;
                         break;
@@ -87,9 +87,9 @@ bool TCPTransport::receive(vector<uint8_t> &data) { return messageQueue_.pop(dat
 void TCPTransport::destroy() {
     running = false;
     shutdown(sockfd, SHUT_RDWR);
-    cout << "joining thread ... " << endl;
+    std::cout << "joining thread ... " << '\n';
     acceptThread.join();
-    cout << "closing socket" << endl;
+    std::cout << "closing socket" << '\n';
     close(client_sockfd);
     close(sockfd);
 }

@@ -7,8 +7,7 @@
 
 class MotorController {
    public:
-    vector<Motor> motors;
-    uint8_t motorNumber;
+    uint8_t motor_number_;
 
     int init(MotorConfig _motors[], uint8_t _motorNumber);
 
@@ -18,6 +17,10 @@ class MotorController {
     int getMotorRPM(int channel);
 
     void destroy();
+    
+   private:
+    vector<Motor> motors_;
+    
 };
 
 #endif

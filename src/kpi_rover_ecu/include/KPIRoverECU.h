@@ -7,8 +7,7 @@
 
 class KPIRoverECU {
    public:
-    ProtocolHanlder *protocolHandler;
-    TCPTransport *tcpTransport;
+    
     void timerThreadFuction(ProtocolHanlder *workClass);
     void processingThreadFunction();
 
@@ -17,9 +16,11 @@ class KPIRoverECU {
     void stop();
 
    private:
+    ProtocolHanlder *protocol_handler_;
+    TCPTransport *tcp_transport_;
     thread timerThread, processingThread;
-    atomic<bool> runningProcess;
-    atomic<bool> runningState;
+    atomic<bool> runningProcess_;
+    atomic<bool> runningState_;
     atomic<int> counter;
 
     int get_counter();
