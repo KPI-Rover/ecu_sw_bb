@@ -1,22 +1,31 @@
-// #include "TCPServerReceiver.h"
 #include "KPIRoverECU.h"
 #include "TCPTransport.h"
-#include "config.h"
 #include "motorConfig.h"
 #include "motorsController.h"
 #include "protocolHandler.h"
-using namespace std;
+#include <atomic>
+#include <getopt.h>
+#include <iostream>
+#include <cstdlib>
+#include <csignal>
+#include <ifaddrs.h>
+#include <cstring>
+#include <netdb.h>
+#include <unistd.h>
+#include <array>
+
 
 atomic<bool> running_program(true);
-void interruptSignalHandler(int signal);
-char* get_primary_ip();
+void InterruptSignalHandler(int signal);
+char* GetPrimaryApi();
 
 int main(int argc, char* argv[]) {
-    char* server_address = get_primary_ip();
-    int server_portnum = 5500;
+    char* server_address = GetPrimaryApi();
+    const int kDefaultPortNum = 5500;
+    int server_portnum = kDefaultPortNum;
 
     // Command-line options
-    int opt;
+    int opt = 0;
     while ((opt = getopt(argc, argv, "a:p:")) != -1) {
         switch (opt) {
             case 'a':
@@ -26,27 +35,27 @@ int main(int argc, char* argv[]) {
                 server_portnum = atoi(optarg);
                 break;
             default:
-                cerr << "Usage: " << argv[0] << '\n';
-                cerr << " [-a server_address] " << '\n';
-                cerr << " [-p server_portnum]" << '\n';
+                std::cout << "Usage: " << argv[0] << '\n';
+                std::cout << " [-a server_address] " << '\n';
+                std::cout << " [-p server_portnum]" << '\n';
                 return EXIT_FAILURE;
         }
     }
     // sem_init(&stopProgramSem, 0, 0);
 
     MotorController motors_processor;
-    const uint8_t motor_number = 4;
+    const uint8_t kMotorNumber = 4;
     MotorConfig shassis_array[] = {MotorConfig(1, false), MotorConfig(2, false), MotorConfig(3, true),
                                    MotorConfig(4, true)};
 
-    motors_processor.init(shassis_array, motor_number);
+    motors_processor.Init(shassis_array, kMotorNumber);
     ProtocolHanlder protocol_handler(&motors_processor);
 
     TCPTransport tcp_transport(server_address, server_portnum);
 
-    if (tcp_transport.init() == -1) {
+    if (tcp_transport.Init() == -1) {
         std::cout << "[ERROR] Error creating socket" << '\n';
-        tcp_transport.destroy();
+        tcp_transport.Destroy();
         return 1;
     }
 
@@ -54,49 +63,52 @@ int main(int argc, char* argv[]) {
 
     KPIRoverECU kpi_rover_ecu(&protocol_handler, &tcp_transport);
 
-    if (!kpi_rover_ecu.start()) {
+    if (!kpi_rover_ecu.Start()) {
         std::cout << "Error In intitalizing main class" << '\n';
         return 1;
     }
 
-    signal(SIGINT, interruptSignalHandler);   // initializing of custom signal handlers
-    signal(SIGTERM, interruptSignalHandler);  // initializing of custom signal handlers
-
+    std::signal(SIGINT, InterruptSignalHandler);   // initializing of custom signal handlers
+    std::signal(SIGTERM, InterruptSignalHandler);  // initializing of custom signal handlers
+    
     while (running_program) {}
 
-    kpi_rover_ecu.stop();
-    motors_processor.destroy();
+    kpi_rover_ecu.Stop();
+    motors_processor.Destroy();
+    delete[] server_address;
 
     return 0;
 }
 
-char* get_primary_ip() {
+char* GetPrimaryApi() {
     /*
-         Automatically finding IP adress for hosting server
+         Automatically finding IP address for hosting server
         returns string of IP-address
      */
     struct ifaddrs *ifaddr, *ifa;
-    int family, s;
+    int family = 0, status = 0;
     char* host = new char[NI_MAXHOST];
 
     if (getifaddrs(&ifaddr) == -1) {
         perror("[ERROR] getifaddrs");
-        exit(EXIT_FAILURE);
+        std::exit(EXIT_FAILURE);
     }
 
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr == NULL) continue;
+    for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == nullptr) {
+            continue;
+        }
 
         family = ifa->ifa_addr->sa_family;
 
         if (family == AF_INET) {  // Check it is IPv4
-            s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-            if (s != 0) {
-                printf("[ERROR] failed: %s\n", gai_strerror(s));
-                exit(EXIT_FAILURE);
+            status = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST);
+            if (status != 0) {
+                std::cerr << "[ERROR] failed: " << gai_strerror(status) << '\n';
+                std::exit(EXIT_FAILURE);
             }
             // Ignore loopback address
-            if (strcmp(ifa->ifa_name, "lo") != 0) {
+            if (std::strcmp(ifa->ifa_name, "lo") != 0) {
                 break;
             }
         }
@@ -106,4 +118,4 @@ char* get_primary_ip() {
     return host;
 }
 
-void interruptSignalHandler(int signal) { running_program = false; }
+void InterruptSignalHandler(int signal) { running_program = false; }
