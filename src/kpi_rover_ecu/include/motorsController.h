@@ -9,14 +9,14 @@ class MotorController {
    public:
     uint8_t motor_number_;
 
-    int init(MotorConfig _motors[], uint8_t _motorNumber);
+    int Init(MotorConfig _motors[], uint8_t _motorNumber);
 
-    int setMotorRPM(int channel, int newRPM);
-    int stopMotor(int channel);
+    int SetMotorRPM(int channel, int newRPM);
+    int StopMotor(int channel);
 
-    int getMotorRPM(int channel);
+    int GetMotorRPM(int channel);
 
-    void destroy();
+    void Destroy();
     
    private:
     vector<Motor> motors_;

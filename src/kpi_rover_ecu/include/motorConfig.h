@@ -7,9 +7,9 @@ class MotorConfig {
    public:
     MotorConfig(uint8_t assignedNumber, bool invertedStatus);
 
-    uint8_t getNumber();
+    uint8_t GetNumber() const ;
 
-    bool isInverted();
+    bool IsInverted() const ;
 
    private:
     uint8_t number_;

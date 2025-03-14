@@ -5,9 +5,9 @@
 
 class MessageQueue {
    public:
-    void push(const vector<uint8_t>& msg);
-    bool pop(vector<uint8_t>& msg, int timeout_ms);
-    void clear();
+    void Push(const vector<uint8_t>& msg);
+    bool Pop(vector<uint8_t>& msg, int timeout_ms);
+    void Clear();
 
    private:
     queue<vector<uint8_t>> queue_;

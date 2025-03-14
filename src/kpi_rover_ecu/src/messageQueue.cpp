@@ -1,22 +1,25 @@
 #include "messageQueue.h"
 
 #include "config.h"
+#include <queue>
+#include <iostream>
+#include <time.h>
 
-void MessageQueue::push(const vector<uint8_t>& msg) {
+void MessageQueue::Push(const vector<uint8_t>& msg) {
     pthread_mutex_lock(&mutex_);
     queue_.push(msg);
     pthread_cond_signal(&cv_);
     pthread_mutex_unlock(&mutex_);
 }
 
-bool MessageQueue::pop(vector<uint8_t>& msg, int timeout_ms) {
+bool MessageQueue::Pop(vector<uint8_t>& msg, int timeout_ms) {
     // this_thread::sleep_for(chrono::milliseconds(timeout_ms));
     pthread_mutex_lock(&mutex_);
 
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     ts.tv_sec += timeout_ms / 1000;
-    ts.tv_nsec += (timeout_ms % 1000) * 1000000;
+    ts.tv_nsec += (timeout_ms % 1000) * ONESECONDMICRO;
     if (ts.tv_nsec >= 1000000000) {
         ts.tv_sec++;
         ts.tv_nsec -= 1000000000;
@@ -36,7 +39,7 @@ bool MessageQueue::pop(vector<uint8_t>& msg, int timeout_ms) {
     return true;
 }
 
-void MessageQueue::clear() {
+void MessageQueue::Clear() {
     pthread_mutex_lock(&mutex_);
     std::queue<std::vector<uint8_t>> empty;
     std::swap(queue_, empty);
