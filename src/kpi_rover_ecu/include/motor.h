@@ -6,15 +6,15 @@
 class Motor {
    public:
     Motor(int assignedNumber, bool isInverted);
-    int motorGo(int newRPM);
-    int motorStop();
-    int getRPM();
+    int MotorGo(int newRPM);
+    int MotorStop() const ;
+    int GetRPM() const ;
 
    private:
-    int motorNumber;
-    bool inverted;
-    double currentDutyCycle;
-    double getDC(int entryRPM);
+    int motorNumber_;
+    bool inverted_;
+    double currentDutyCycle_;
+    double GetDC(int entryRPM);
 };
 
 #endif  // MOTOR_H

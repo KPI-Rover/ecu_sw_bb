@@ -4,22 +4,22 @@
 #include "config.h"
 #include "protocolHandler.h"
 
-KPIRoverECU::KPIRoverECU(ProtocolHanlder* _protocolHandler, TCPTransport* _tcpTransport) {
-    protocol_handler_ = _protocolHandler;
-    tcp_transport_ = _tcpTransport;
-    counter.store(get_counter());
+KPIRoverECU::KPIRoverECU(ProtocolHanlder* _protocolHandler, TCPTransport* _tcpTransport) : protocol_handler_(_protocolHandler), tcp_transport_(_tcpTransport) {
+    // protocol_handler_ = _protocolHandler;
+    // tcp_transport_ = _tcpTransport;
+    counter_.store(GetCounter());
 
     runningProcess_.store(true);
     runningState_.store(false);
 }
 
-bool KPIRoverECU::start() {
-    tcp_transport_->start();
-    timerThread = thread([this] { timerThreadFuction(this->protocol_handler_); });
-    processingThread = thread([this] { processingThreadFunction(); });
+bool KPIRoverECU::Start() {
+    tcp_transport_->Start();
+    timerThread_ = thread([this] { TimerThreadFuction(this->protocol_handler_); });
+    processingThread_ = thread([this] { ProcessingThreadFunction(); });
 
 
-    if (!timerThread.joinable() || !processingThread.joinable()) {
+    if (!timerThread_.joinable() || !processingThread_.joinable()) {
         std::cout << "Error creating thread" << '\n';
         return false;
     }
@@ -27,57 +27,57 @@ bool KPIRoverECU::start() {
     return true;
 }
 
-void KPIRoverECU::timerThreadFuction(ProtocolHanlder* workClass) {
-    vector<uint8_t> stopVector;
-    int32_t stopValue = 0;
-    stopVector.push_back(ID_SET_ALL_MOTORS_SPEED);
+void KPIRoverECU::TimerThreadFuction(ProtocolHanlder* workClass) {
+    vector<uint8_t> stop_vector;
+    int32_t stop_value = 0;
+    stop_vector.push_back(ID_SET_ALL_MOTORS_SPEED);
     for (int i = 0; i < MOTORS_NUMBER; i++) {
-        stopVector.insert(stopVector.end(), reinterpret_cast<uint8_t*>(&stopValue),
-                          reinterpret_cast<uint8_t*>(&stopValue) + sizeof(int32_t));
+        stop_vector.insert(stop_vector.end(), reinterpret_cast<uint8_t*>(&stop_value),
+                          reinterpret_cast<uint8_t*>(&stop_value) + sizeof(int32_t));
     }
 
     while (!runningState_) {
-        if (counter > 0) {
+        if (counter_ > 0) {
             usleep(TIMERPRECISION);
-            counter--;
+            counter_--;
 
-            if (counter == 0) {
+            if (counter_ == 0) {
                 std::cout << "[INFO] Motor set to stop" << '\n';
             }
 
-        } else if (counter == 0) {
+        } else if (counter_ == 0) {
             // command to stop all motors
-            workClass->handleMessage(stopVector);
+            workClass->HandleMessage(stop_vector);
 
             sleep(TIMESTOP);
         }
     }
 }
 
-void KPIRoverECU::processingThreadFunction() {
+void KPIRoverECU::ProcessingThreadFunction() {
     while (runningProcess_) {
         vector<uint8_t> message;
-        if (tcp_transport_->receive(message)) {
-            counter.store(get_counter());
-            const vector<uint8_t> return_message = protocol_handler_->handleMessage(message);
-            tcp_transport_->send(return_message);
+        if (tcp_transport_->Receive(message)) {
+            counter_.store(GetCounter());
+            const vector<uint8_t> kReturnMessage = protocol_handler_->HandleMessage(message);
+            tcp_transport_->Send(kReturnMessage);
         }
     }
 }
 
-void KPIRoverECU::stop() {
+void KPIRoverECU::Stop() {
     std::cout << "END of program" << '\n';
     std::cout << "joining threads" << '\n';
     runningState_ = true;
-    if (timerThread.joinable()) {
-        timerThread.join();
+    if (timerThread_.joinable()) {
+        timerThread_.join();
     }
     runningProcess_ = false;
-    if (processingThread.joinable()) {
-        processingThread.join();
+    if (processingThread_.joinable()) {
+        processingThread_.join();
     }
     std::cout << "destroying drivers" << '\n';
-    tcp_transport_->destroy();
+    tcp_transport_->Destroy();
 }
 
-int KPIRoverECU::get_counter() { return (TIMESTOP * ONESECONDMICRO) / TIMERPRECISION; }
+int KPIRoverECU::GetCounter() { return (TIMESTOP * ONESECONDMICRO) / TIMERPRECISION; }

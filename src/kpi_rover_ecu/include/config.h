@@ -35,8 +35,8 @@ using namespace std;
 #define BUFFERSIZE 64           // maximum size of buffer
 #define TIMERPRECISION 100000   // 100 miliseconds in microsecond (for timer)
 #define ONESECONDMICRO 1000000  // 1 s in microseconds
-#define TIMESTOP \
-    1  // 1 second befre stopping all motors. If no new command is received over TCP for 1 second, all motors must stop.
+#define ONESECONDMILI 1000
+#define TIMESTOP 1  // 1 second befre stopping all motors. If no new command is received over TCP for 1 second, all motors must stop.
 /* Server configurations END */
 
 /* robot control ccommands START */
