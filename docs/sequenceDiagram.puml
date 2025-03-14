@@ -1,0 +1,121 @@
+@startuml
+
+skinparam fontSize 20
+skinparam sequenceMessageAlign center
+skinparam sequenceArrowFontSize 20
+
+participant "Client1" as C1
+participant "Client2" as C2
+participant "MessageQueue" as MQ
+participant "TCPTransport\n(serverThread)" as TCP
+participant "KPIRoverECU\n(processingThread)" as ECU
+participant "ProtocolHandler" as PH
+participant "MotorsController" as MC
+participant "Motor[0..3]" as M
+participant "RC_Encoder" as RC
+participant "RC_Motor" as RC_M
+
+== First Message: get_all_encoders from Client1 ==
+
+C1 -> TCP: send get_all_encoders\nmessage
+activate TCP
+TCP -> MQ: push(message, clientId1)
+activate MQ
+MQ --> TCP: 
+deactivate MQ
+TCP --> C1: 
+deactivate TCP
+
+ECU -> TCP: receive(data, clientId)
+activate ECU
+activate TCP
+TCP -> MQ: pop(data, clientId)
+activate MQ
+MQ --> TCP: get_all_encoders message, clientId1
+deactivate MQ
+TCP --> ECU: get_all_encoders message, clientId1
+deactivate TCP
+
+ECU -> PH: handleMessage(data)
+activate PH
+PH -> PH: handleGetAllEncoders(data)
+activate PH
+
+note right of C1: Second message arrives from Client2 during processing
+C2 -> TCP: send set_all_motors_speed\nmessage
+activate TCP
+TCP -> MQ: push(message, clientId2)
+activate MQ
+MQ --> TCP: 
+deactivate MQ
+TCP --> C2: 
+deactivate TCP
+
+loop for each motor (0-3)
+    PH -> MC: getEncoderCounter(i)
+    activate MC
+    MC -> M: getEncoderCounter()
+    activate M
+    M -> RC: rc_encoder_read(ch)
+    activate RC
+    RC --> M: encoder value
+    deactivate RC
+    M --> MC: encoder value
+    deactivate M
+    MC --> PH: encoder value
+    deactivate MC
+end
+
+PH --> ECU: response
+deactivate PH
+deactivate PH
+
+ECU -> TCP: send(response, clientId1)
+activate TCP
+TCP -> C1: send get_all_encoders response
+deactivate TCP
+
+== Second Message: set_all_motors_speed from Client2 ==
+
+ECU -> TCP: receive(data, clientId)
+activate TCP
+TCP -> MQ: pop(data, clientId)
+activate MQ
+MQ --> TCP: set_all_motors_speed message, clientId2
+deactivate MQ
+TCP --> ECU: set_all_motors_speed message, clientId2
+deactivate TCP
+
+ECU -> PH: handleMessage(data)
+activate PH
+PH -> PH: handleSetAllMotorsSpeed(data)
+activate PH
+
+loop for each motor (0-3)
+    PH -> MC: setRPM(i, speed[i])
+    activate MC
+    MC -> M: setRPM(speed)
+    activate M
+    M -> M: getDutyCycle(rpm)
+    M -> RC_M: rc_motor_set(ch, duty)
+    activate RC_M
+    RC_M --> M: status
+    deactivate RC_M
+    M --> MC: status
+    deactivate M
+    MC --> PH: status
+    deactivate MC
+end
+
+PH --> ECU: response
+deactivate PH
+deactivate PH
+
+ECU -> TCP: send(response, clientId2)
+activate TCP
+TCP -> C2: send set_all_motors_speed response
+deactivate TCP
+
+deactivate ECU
+
+@enduml
