@@ -18,11 +18,11 @@ bool MessageQueue::Pop(vector<uint8_t>& msg, int timeout_ms) {
 
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
-    ts.tv_sec += timeout_ms / 1000;
-    ts.tv_nsec += (timeout_ms % 1000) * ONESECONDMICRO;
-    if (ts.tv_nsec >= 1000000000) {
+    ts.tv_sec += timeout_ms / ONESECONDMILI;
+    ts.tv_nsec += (timeout_ms % ONESECONDMILI) * ONESECONDMICRO;
+    if (ts.tv_nsec >= ONESECONDMICRO * ONESECONDMILI) {
         ts.tv_sec++;
-        ts.tv_nsec -= 1000000000;
+        ts.tv_nsec -= ONESECONDMICRO * ONESECONDMILI;
     }
 
     while (queue_.empty()) {

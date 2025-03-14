@@ -3,16 +3,6 @@
 #include "motorConfig.h"
 #include "motorsController.h"
 #include "protocolHandler.h"
-#include <atomic>
-#include <getopt.h>
-#include <iostream>
-#include <cstdlib>
-#include <csignal>
-#include <ifaddrs.h>
-#include <cstring>
-#include <netdb.h>
-#include <unistd.h>
-#include <array>
 
 
 atomic<bool> running_program(true);
@@ -44,7 +34,7 @@ int main(int argc, char* argv[]) {
     // sem_init(&stopProgramSem, 0, 0);
 
     MotorController motors_processor;
-    const uint8_t kMotorNumber = 4;
+    const uint8_t kMotorNumber = MOTORS_NUMBER;
     MotorConfig shassis_array[] = {MotorConfig(1, false), MotorConfig(2, false), MotorConfig(3, true),
                                    MotorConfig(4, true)};
 
@@ -68,14 +58,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::signal(SIGINT, InterruptSignalHandler);   // initializing of custom signal handlers
-    std::signal(SIGTERM, InterruptSignalHandler);  // initializing of custom signal handlers
-    
+    if (std::signal(SIGINT, InterruptSignalHandler) == SIG_ERR) {
+        std::cerr << "Error: Unable to set signal handler for SIGINT" << '\n';
+        return EXIT_FAILURE;
+    }
+
+    if (std::signal(SIGTERM, InterruptSignalHandler) == SIG_ERR) {
+        std::cerr << "Error: Unable to set signal handler for SIGTERM" << '\n';
+        return EXIT_FAILURE;
+    }
+
     while (running_program) {}
 
     kpi_rover_ecu.Stop();
     motors_processor.Destroy();
-    delete[] server_address;
 
     return 0;
 }
