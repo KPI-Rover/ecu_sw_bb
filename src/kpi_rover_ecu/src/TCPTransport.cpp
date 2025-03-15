@@ -1,8 +1,7 @@
 #include "TCPTransport.h"
-
-#include "ITransport.h"
-#include "config.h"
-#include "messageQueue.h"
+#include <unistd.h>
+#include <iostream>
+#include <vector>
 
 TCPTransport::TCPTransport(const char *ip_address, int port) : server_portnum_(port), running_(true), server_address_(new char[strlen(ip_address) + 1]) {
     //server_address_ = new char[strlen(ip_address) + 1];

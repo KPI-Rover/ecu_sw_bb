@@ -2,9 +2,25 @@
 #define KPIROVERECU_H
 
 #include "TCPTransport.h"
-#include "config.h"
+//#include "config.h"
 #include "protocolHandler.h"
 #include <atomic>
+#include <condition_variable>
+#include <csignal>
+#include <cstring>
+#include <iostream>
+#include <mutex>
+#include <queue>
+#include <thread>
+#include <vector>
+#include <unistd.h>
+
+#define TIMERPRECISION 100000   // 100 miliseconds in microsecond (for timer)
+#define ONESECONDMICRO 1000000  // 1 s in microseconds
+#define ONESECONDMILI 1000
+#define TIMESTOP 1  // 1 second befre stopping all motors. If no new command is received over TCP for 1 second, all motors must stop.
+
+using namespace std;
 
 class KPIRoverECU {
    public:

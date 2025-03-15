@@ -1,7 +1,11 @@
 #ifndef MOTORCONFIG_H
 #define MOTORCONFIG_H
 
-#include "config.h"
+//#include "config.h"
+#include <iostream>
+#include <cstdint>
+
+using namespace std;
 
 class MotorConfig {
    public:
