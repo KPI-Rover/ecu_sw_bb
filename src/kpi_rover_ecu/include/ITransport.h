@@ -1,7 +1,11 @@
 #ifndef ITRANSPORT_H
 #define ITRANSPORT_H
 
-#include "config.h"
+//#include "config.h"
+#include <iostream>
+#include <vector>
+
+using namespace std;
 
 
 class ITransport {

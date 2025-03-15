@@ -1,9 +1,21 @@
 #ifndef TCPTRANSPORT_H
 #define TCPTRANSPORT_H
 
+#include <arpa/inet.h>
+#include <atomic>
+#include <cstring>
+#include <iostream>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <thread>
+#include <vector>
 #include "ITransport.h"
-#include "config.h"
 #include "messageQueue.h"
+
+#define NUMSLOTS 5              // how many connections can server process
+#define BUFFERSIZE 64           // maximum size of buffer
+
+using namespace std;
 
 class TCPTransport : public ITransport {
    public:
