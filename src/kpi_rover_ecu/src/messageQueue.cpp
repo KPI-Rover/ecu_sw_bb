@@ -1,9 +1,7 @@
 #include "messageQueue.h"
 
-#include "config.h"
-#include <queue>
-#include <iostream>
 #include <time.h>
+#include <iostream>
 
 void MessageQueue::Push(const vector<uint8_t>& msg) {
     pthread_mutex_lock(&mutex_);

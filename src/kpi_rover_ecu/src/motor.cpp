@@ -1,8 +1,4 @@
 #include "motor.h"
-#include <robotcontrol.h>
-#include <iostream>
-
-//using namespace std;
 
 Motor::Motor(int assignedNumber, bool isInverted) : motorNumber_(assignedNumber), inverted_(isInverted), currentDutyCycle_(0) {}
 

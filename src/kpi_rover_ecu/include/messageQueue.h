@@ -1,7 +1,15 @@
 #ifndef MESSAGEQUEUE_H
 #define MESSAGEQUEUE_H
 
-#include "config.h"
+#include <pthread.h>
+#include <queue>
+#include <vector>
+#include <cstdint>  // Добавляем этот include для определения uint8_t
+
+#define ONESECONDMICRO 1000000  // 1 s in microseconds
+#define ONESECONDMILI 1000
+
+using namespace std;
 
 class MessageQueue {
    public:

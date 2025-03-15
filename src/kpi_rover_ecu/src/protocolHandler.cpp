@@ -1,6 +1,7 @@
 #include "protocolHandler.h"
+
+#include <arpa/inet.h>
 #include "motorsController.h"
-#include "config.h"
 
 ProtocolHanlder::ProtocolHanlder(MotorController* motorDriver) : main_controller_(motorDriver) {}
 
@@ -40,15 +41,15 @@ vector<uint8_t> ProtocolHanlder::HandleGetApiVersion(vector<uint8_t> message) co
 }
 
 vector<uint8_t> ProtocolHanlder::HandleSetAllMotorsSpeed(vector<uint8_t> message) {
-    std::vector<int32_t> motors_rpm_arr(MOTORS_NUMBER, 0);
+    std::vector<int32_t> motors_rpm_arr(main_controller_->GetMotorsNumber(), 0);
     vector<uint8_t> ret_val;
 
-    for (int i = 0; i < main_controller_->motor_number_; i++) {
+    for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
         memcpy(&motors_rpm_arr[i], &message[1 + i * sizeof(int32_t)], sizeof(int32_t));
         motors_rpm_arr[i] = static_cast<int32_t>(ntohl(motors_rpm_arr[i]));
     }
 
-    for (int i = 0; i < main_controller_->motor_number_; i++) {
+    for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
         if (motors_rpm_arr[i] != 0) {
             std::cout << "[COMMAND] motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]) << '\n';
         }
@@ -83,7 +84,7 @@ vector<uint8_t> ProtocolHanlder::HandleGetAllEncoders(vector<uint8_t> message) c
     vector<uint8_t> ret_val;
     ret_val.push_back(ID_GET_ALL_ENCODERS);
 
-    for (int i = 0; i < main_controller_->motor_number_; i++) {
+    for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
         int32_t encoder_rpm = static_cast<int32_t>(htonl(main_controller_->GetMotorRPM(i)));
         ret_val.insert(ret_val.end(), reinterpret_cast<uint8_t*>(&encoder_rpm),
                        reinterpret_cast<uint8_t*>(&encoder_rpm) + sizeof(int32_t));
@@ -114,6 +115,18 @@ vector<uint8_t> ProtocolHanlder::HandleMessage(vector<uint8_t> message) {
     } else {
         std::cout << "[ERROR] Command " << static_cast<int>(kCmdId) << " wasn't designated" << '\n';
         return {};
+    }
+
+    return ret_val;
+}
+
+vector<uint8_t> ProtocolHanlder::MotorsStopMessage() {
+    vector<uint8_t> ret_val;
+    int32_t stop_value = 0;
+    ret_val.push_back(ID_SET_ALL_MOTORS_SPEED);
+    for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
+        ret_val.insert(ret_val.end(), reinterpret_cast<uint8_t*>(&stop_value),
+                          reinterpret_cast<uint8_t*>(&stop_value) + sizeof(int32_t));
     }
 
     return ret_val;

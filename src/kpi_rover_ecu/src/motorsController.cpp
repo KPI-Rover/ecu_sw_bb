@@ -1,6 +1,5 @@
 #include "motorsController.h"
 
-#include "config.h"
 #include "motor.h"
 #include "motorConfig.h"
 
@@ -82,5 +81,7 @@ void MotorController::Destroy() {
 }
 
 int MotorController::GetMotorRPM(int channel) { return motors_[channel].GetRPM(); }
+
+int MotorController::GetMotorsNumber() { return motor_number_; }
 
 // MotorProcessor proc;

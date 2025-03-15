@@ -4,6 +4,21 @@
 #include "motorsController.h"
 #include "protocolHandler.h"
 
+#include <vector>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <csignal>
+#include <cstring>
+#include <iostream>
+#include <ifaddrs.h>
+#include <netdb.h>
+
+#include <getopt.h>
+#define MOTORS_NUMBER 4
+
+using namespace std;
 
 atomic<bool> running_program(true);
 void InterruptSignalHandler(int signal);

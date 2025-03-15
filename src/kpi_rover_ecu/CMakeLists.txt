@@ -21,7 +21,6 @@ set(SOURCE_FILES
 )
 
 set(HEADER_FILES
-    include/config.h 
     include/motorsController.h
     include/motor.h
     include/protocolHandler.h

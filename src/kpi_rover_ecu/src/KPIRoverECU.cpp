@@ -1,8 +1,8 @@
 #include "KPIRoverECU.h"
 
-#include "TCPTransport.h"
-#include "config.h"
-#include "protocolHandler.h"
+// #include "TCPTransport.h"
+// #include "config.h"
+// #include "protocolHandler.h"
 
 KPIRoverECU::KPIRoverECU(ProtocolHanlder* _protocolHandler, TCPTransport* _tcpTransport) : protocol_handler_(_protocolHandler), tcp_transport_(_tcpTransport) {
     // protocol_handler_ = _protocolHandler;
@@ -28,17 +28,12 @@ bool KPIRoverECU::Start() {
 }
 
 void KPIRoverECU::TimerThreadFuction(ProtocolHanlder* workClass) {
-    vector<uint8_t> stop_vector;
-    int32_t stop_value = 0;
-    stop_vector.push_back(ID_SET_ALL_MOTORS_SPEED);
-    for (int i = 0; i < MOTORS_NUMBER; i++) {
-        stop_vector.insert(stop_vector.end(), reinterpret_cast<uint8_t*>(&stop_value),
-                          reinterpret_cast<uint8_t*>(&stop_value) + sizeof(int32_t));
-    }
+    vector<uint8_t> stop_vector = workClass->MotorsStopMessage();
+
 
     while (!runningState_) {
         if (counter_ > 0) {
-            usleep(TIMERPRECISION);
+            rc_usleep(TIMERPRECISION);
             counter_--;
 
             if (counter_ == 0) {
@@ -49,7 +44,7 @@ void KPIRoverECU::TimerThreadFuction(ProtocolHanlder* workClass) {
             // command to stop all motors
             workClass->HandleMessage(stop_vector);
 
-            sleep(TIMESTOP);
+            rc_usleep(TIMESTOP * ONESECONDMICRO);
         }
     }
 }
