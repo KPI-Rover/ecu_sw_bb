@@ -1,5 +1,7 @@
 #include "motorsController.h"
-
+#include <rc/start_stop.h>
+#include <rc/motor.h>
+#include <rc/encoder.h>
 #include "motor.h"
 #include "motorConfig.h"
 
