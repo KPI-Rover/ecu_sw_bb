@@ -1,0 +1,32 @@
+name: Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      packages: read
+    container: ghcr.io/kpi-rover/kpi-rover-bbb-check:latest
+    steps:
+      - name: Checkout Code with Submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Run Tests
+        run: |
+          export CC=/usr/bin/gcc && \
+          export CXX=/usr/bin/g++ && \
+          export LD=/usr/bin/ld && \
+          export AR=/usr/bin/ar && \
+          mkdir -p build/Tests && cd build/Tests && \
+          cmake ../.. -DBUILD_VARIANT=Tests \
+              -DCMAKE_CXX_FLAGS='-O0 -g --coverage -fprofile-arcs -ftest-coverage' \
+              -DCMAKE_EXE_LINKER_FLAGS='--coverage' \
+          && make \
+          && make -s coverage

@@ -14,12 +14,14 @@ RUN apt-get update -q && \
     python3 \
     python3-pip \
     cmake \
+    lcov \
+    gcc \
+    g++ \
+    build-essential \
+    make \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# RUN ln -s /usr/bin/arm-linux-gnueabihf-g++-8 /usr/bin/arm-linux-gnueabihf-g++ && \
-#     ln -s /usr/bin/arm-linux-gnueabihf-gcc-8 /usr/bin/arm-linux-gnueabihf-gcc && \
-#     ln -s /usr/bin/arm-linux-gnueabihf-cpp-8 /usr/bin/arm-linux-gnueabihf-cpp
-    
 ENV AS=/usr/bin/arm-linux-gnueabihf-as \
     AR=/usr/bin/arm-linux-gnueabihf-ar \
     CC=/usr/bin/arm-linux-gnueabihf-gcc \
@@ -28,10 +30,5 @@ ENV AS=/usr/bin/arm-linux-gnueabihf-as \
     LD=/usr/bin/arm-linux-gnueabihf-ld
 
 RUN echo "alias ll='ls -alF --color=auto'" >> /etc/bash.bashrc
-
-RUN apt-get update -q && \
-    apt-get install -y -q \
-    git \
-    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace

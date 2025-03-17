@@ -1,7 +1,7 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
-#include <robotcontrol.h>
+
 #include <iostream>
 
 #define MIN_RPM 8000

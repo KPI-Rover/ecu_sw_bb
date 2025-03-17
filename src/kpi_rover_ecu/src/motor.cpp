@@ -1,9 +1,21 @@
 #include "motor.h"
+#include <rc/motor.h>
+#include <rc/encoder.h>
+#include <rc/time.h>
 
 Motor::Motor(int assignedNumber, bool isInverted) : motorNumber_(assignedNumber), inverted_(isInverted), currentDutyCycle_(0) {}
 
-
 int Motor::MotorGo(int newRPM) {
+    if (newRPM > MAX_RPM ) {
+        std::cout << "[Warning] RPM out of range" << '\n';
+        newRPM = MAX_RPM;
+    }
+
+    if (newRPM < MIN_RPM) {
+        std::cout << "[Warning] RPM out of range" << '\n';
+        newRPM = MIN_RPM;
+    }
+
     currentDutyCycle_ = GetDC(newRPM);
     if (inverted_) {
         currentDutyCycle_ = -currentDutyCycle_;
@@ -20,13 +32,6 @@ int Motor::MotorGo(int newRPM) {
 int Motor::MotorStop() const  {
     if (rc_motor_brake(motorNumber_) != 0) {
         std::cout << "[ERROR][RC] rc_motor_brake" << '\n';
-        return -1;
-    }
-
-    rc_usleep(BRAKE_TIME);
-
-    if (rc_motor_free_spin(motorNumber_) != 0) {
-        std::cout << "[ERROR][RC] rc_motor_free_spin" << '\n';
         return -1;
     }
 
