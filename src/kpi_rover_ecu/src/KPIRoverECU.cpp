@@ -1,4 +1,5 @@
 #include "KPIRoverECU.h"
+#include <rc/time.h>
 
 // #include "TCPTransport.h"
 // #include "config.h"
