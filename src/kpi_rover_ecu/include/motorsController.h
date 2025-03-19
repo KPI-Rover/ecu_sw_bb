@@ -15,7 +15,7 @@ class MotorController {
     int SetMotorRPM(int channel, int newRPM);
     int StopMotor(int channel);
 
-    int GetMotorRPM(int channel);
+    int GetEncoderCounter(int channel);
     int GetMotorsNumber();
     void Destroy();
     
