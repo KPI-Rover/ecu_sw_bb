@@ -69,7 +69,7 @@ vector<uint8_t> ProtocolHanlder::HandleGetEncoder(vector<uint8_t> message) {
     vector<uint8_t> ret_val;
     std::cout << "[COMMAND] get motor " << static_cast<int>(kMotorId) << " encoder " << '\n';
 
-    const int32_t kMotorRpm = main_controller_->GetMotorRPM(kMotorId);
+    const int32_t kMotorRpm = main_controller_->GetEncoderCounter(kMotorId);
 
     ret_val.push_back(ID_GET_ENCODER);
 
@@ -85,7 +85,7 @@ vector<uint8_t> ProtocolHanlder::HandleGetAllEncoders(vector<uint8_t> message) c
     ret_val.push_back(ID_GET_ALL_ENCODERS);
 
     for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
-        int32_t encoder_rpm = static_cast<int32_t>(htonl(main_controller_->GetMotorRPM(i)));
+        int32_t encoder_rpm = static_cast<int32_t>(htonl(main_controller_->GetEncoderCounter(i)));
         ret_val.insert(ret_val.end(), reinterpret_cast<uint8_t*>(&encoder_rpm),
                        reinterpret_cast<uint8_t*>(&encoder_rpm) + sizeof(int32_t));
     }

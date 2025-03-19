@@ -33,7 +33,7 @@ int Motor::MotorStop() const  {
     return 0;
 }
 
-int Motor::GetRPM() const {
+int Motor::GetEncoderCounter() const {
     const int kEncoderTicks = rc_encoder_read(motorNumber_);
     rc_encoder_write(motorNumber_, 0);
     return kEncoderTicks;
