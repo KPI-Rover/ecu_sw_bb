@@ -80,7 +80,7 @@ void MotorController::Destroy() {
     rc_encoder_cleanup();
 }
 
-int MotorController::GetMotorRPM(int channel) { return motors_[channel].GetRPM(); }
+int MotorController::GetEncoderCounter(int channel) { return motors_[channel].GetEncoderCounter(); }
 
 int MotorController::GetMotorsNumber() { return motor_number_; }
 

@@ -15,7 +15,7 @@ class Motor {
     Motor(int assignedNumber, bool isInverted);
     int MotorGo(int newRPM);
     int MotorStop() const ;
-    int GetRPM() const ;
+    int GetEncoderCounter() const ;
 
    private:
     int motorNumber_;
