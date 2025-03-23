@@ -1,11 +1,26 @@
 #include "protocolHandler.h"
 
-#include <arpa/inet.h>
+#include <netinet/in.h>
+
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <vector>
+
 #include "motorsController.h"
+
+using std::vector;
+
+constexpr uint8_t ProtocolHanlder::kApiVersion;
+constexpr uint8_t ProtocolHanlder::kIdGetApiVersion;
+constexpr uint8_t ProtocolHanlder::kIdSetMotorSpeed;
+constexpr uint8_t ProtocolHanlder::kIdSetAllMotorsSpeed;
+constexpr uint8_t ProtocolHanlder::kIdGetEncoder;
+constexpr uint8_t ProtocolHanlder::kIdGetAllEncoders;
 
 ProtocolHanlder::ProtocolHanlder(MotorController* motorDriver) : main_controller_(motorDriver) {}
 
-vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(vector<uint8_t> message) {
+vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(const vector<uint8_t>& message) {
     const uint8_t kMotorId = message[1];
     int32_t k_motor_rpm = 0;
     vector<uint8_t> ret_val;
@@ -13,7 +28,8 @@ vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(vector<uint8_t> message) {
     memcpy(&k_motor_rpm, &message[2], sizeof(int32_t));
     k_motor_rpm = static_cast<int32_t>(ntohl(k_motor_rpm));
 
-    std::cout << "[COMMAND] motor " << static_cast<int>(kMotorId) << " new rpm " << static_cast<int>(k_motor_rpm) << '\n';
+    std::cout << "[COMMAND] motor " << static_cast<int>(kMotorId) << " new rpm " << static_cast<int>(k_motor_rpm)
+              << '\n';
     std::cout << "[INFO] Motor set run" << '\n';
 
     if (main_controller_->SetMotorRPM(static_cast<int>(kMotorId), static_cast<int>(k_motor_rpm)) != 0) {
@@ -22,25 +38,26 @@ vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(vector<uint8_t> message) {
     }
 
     // buffer.assign(BUFFERSIZE, 0);
-    ret_val.push_back(ID_SET_MOTOR_SPEED);
+    ret_val.push_back(ProtocolHanlder::kIdSetMotorSpeed);
 
     return ret_val;
 }
 
-vector<uint8_t> ProtocolHanlder::HandleGetApiVersion(vector<uint8_t> message) const {
+vector<uint8_t> ProtocolHanlder::HandleGetApiVersion(const vector<uint8_t>& message) {
     std::cout << "[COMMAND] get api version " << '\n';
+    std::cout << "[INFO] Client Api version " << message[0] << '\n';
+
     vector<uint8_t> ret_val;
 
-    // buffer.assign(BUFFERSIZE, 0);
-    ret_val.push_back(ID_GET_API_VERSION);
+    ret_val.push_back(ProtocolHanlder::kIdGetApiVersion);
 
-    const uint8_t kResponse = 1;  // in next versions it can get value from some function
+    const uint8_t kResponse = kApiVersion;
     ret_val.push_back(kResponse);
 
     return ret_val;
 }
 
-vector<uint8_t> ProtocolHanlder::HandleSetAllMotorsSpeed(vector<uint8_t> message) {
+vector<uint8_t> ProtocolHanlder::HandleSetAllMotorsSpeed(const vector<uint8_t>& message) {
     std::vector<int32_t> motors_rpm_arr(main_controller_->GetMotorsNumber(), 0);
     vector<uint8_t> ret_val;
 
@@ -60,56 +77,58 @@ vector<uint8_t> ProtocolHanlder::HandleSetAllMotorsSpeed(vector<uint8_t> message
         }
     }
 
-    ret_val.push_back(ID_SET_ALL_MOTORS_SPEED);
+    ret_val.push_back(ProtocolHanlder::kIdSetAllMotorsSpeed);
     return ret_val;
 }
 
-vector<uint8_t> ProtocolHanlder::HandleGetEncoder(vector<uint8_t> message) {
+vector<uint8_t> ProtocolHanlder::HandleGetEncoder(const vector<uint8_t>& message) {
     const uint8_t kMotorId = message[1];
     vector<uint8_t> ret_val;
     std::cout << "[COMMAND] get motor " << static_cast<int>(kMotorId) << " encoder " << '\n';
 
     const int32_t kMotorRpm = main_controller_->GetEncoderCounter(kMotorId);
+    ret_val.push_back(ProtocolHanlder::kIdGetEncoder);
 
-    ret_val.push_back(ID_GET_ENCODER);
-
-    int32_t k_motor_rpm_order = static_cast<int32_t>(htonl(kMotorRpm));
-    ret_val.insert(ret_val.end(), reinterpret_cast<uint8_t*>(&k_motor_rpm_order),
-                   reinterpret_cast<uint8_t*>(&k_motor_rpm_order) + sizeof(int32_t));
+    auto k_motor_rpm_order = static_cast<int32_t>(htonl(kMotorRpm));
+    uint8_t buffer[sizeof(int32_t)];
+    std::memcpy(buffer, &k_motor_rpm_order, sizeof(int32_t));
+    ret_val.insert(ret_val.end(), buffer, buffer + sizeof(int32_t));
     return ret_val;
 }
 
-vector<uint8_t> ProtocolHanlder::HandleGetAllEncoders(vector<uint8_t> message) const  {
+// TODO: Get rid of the [[maybe_unused]] attribute
+vector<uint8_t> ProtocolHanlder::HandleGetAllEncoders(const vector<uint8_t>& message [[maybe_unused]]) const {
     std::cout << "[COMMAND] get all encoders " << '\n';
     vector<uint8_t> ret_val;
-    ret_val.push_back(ID_GET_ALL_ENCODERS);
+    ret_val.push_back(ProtocolHanlder::kIdGetAllEncoders);
 
+    uint8_t buffer[sizeof(int32_t)];
     for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
-        int32_t encoder_rpm = static_cast<int32_t>(htonl(main_controller_->GetEncoderCounter(i)));
-        ret_val.insert(ret_val.end(), reinterpret_cast<uint8_t*>(&encoder_rpm),
-                       reinterpret_cast<uint8_t*>(&encoder_rpm) + sizeof(int32_t));
+        auto encoder_rpm = static_cast<int32_t>(htonl(main_controller_->GetEncoderCounter(i)));
+        std::memcpy(buffer, &encoder_rpm, sizeof(int32_t));
+        ret_val.insert(ret_val.end(), buffer, buffer + sizeof(int32_t));
     }
 
     return ret_val;
 }
 
-vector<uint8_t> ProtocolHanlder::HandleMessage(vector<uint8_t> message) {
+vector<uint8_t> ProtocolHanlder::HandleMessage(const vector<uint8_t>& message) {
     const uint8_t kCmdId = message[0];
     vector<uint8_t> ret_val;  // std::cout << "server get command: " <<  static_cast<int>(kCmdId) << '\n';
 
-    if (kCmdId == ID_SET_MOTOR_SPEED) {
+    if (kCmdId == ProtocolHanlder::kIdSetMotorSpeed) {
         ret_val = HandleSetMotorSpeed(message);
 
-    } else if (kCmdId == ID_GET_API_VERSION) {
+    } else if (kCmdId == ProtocolHanlder::kIdGetApiVersion) {
         ret_val = HandleGetApiVersion(message);
 
-    } else if (kCmdId == ID_SET_ALL_MOTORS_SPEED) {
+    } else if (kCmdId == ProtocolHanlder::kIdSetAllMotorsSpeed) {
         ret_val = HandleSetAllMotorsSpeed(message);
 
-    } else if (kCmdId == ID_GET_ENCODER) {
+    } else if (kCmdId == ProtocolHanlder::kIdGetEncoder) {
         ret_val = HandleGetEncoder(message);
 
-    } else if (kCmdId == ID_GET_ALL_ENCODERS) {
+    } else if (kCmdId == ProtocolHanlder::kIdGetAllEncoders) {
         ret_val = HandleGetAllEncoders(message);
 
     } else {
@@ -123,10 +142,11 @@ vector<uint8_t> ProtocolHanlder::HandleMessage(vector<uint8_t> message) {
 vector<uint8_t> ProtocolHanlder::MotorsStopMessage() {
     vector<uint8_t> ret_val;
     int32_t stop_value = 0;
-    ret_val.push_back(ID_SET_ALL_MOTORS_SPEED);
+    ret_val.push_back(ProtocolHanlder::kIdSetAllMotorsSpeed);
+    uint8_t buffer[sizeof(int32_t)];
     for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
-        ret_val.insert(ret_val.end(), reinterpret_cast<uint8_t*>(&stop_value),
-                          reinterpret_cast<uint8_t*>(&stop_value) + sizeof(int32_t));
+        std::memcpy(buffer, &stop_value, sizeof(int32_t));
+        ret_val.insert(ret_val.end(), buffer, buffer + sizeof(int32_t));
     }
 
     return ret_val;

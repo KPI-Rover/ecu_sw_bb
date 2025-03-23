@@ -1,24 +1,27 @@
 #include "KPIRoverECU.h"
+
 #include <rc/time.h>
 
-// #include "TCPTransport.h"
-// #include "config.h"
-// #include "protocolHandler.h"
+#include <csignal>
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <vector>
 
-KPIRoverECU::KPIRoverECU(ProtocolHanlder* _protocolHandler, TCPTransport* _tcpTransport) : protocol_handler_(_protocolHandler), tcp_transport_(_tcpTransport) {
-    // protocol_handler_ = _protocolHandler;
-    // tcp_transport_ = _tcpTransport;
-    counter_.store(GetCounter());
+#include "TCPTransport.h"
+#include "protocolHandler.h"
 
-    runningProcess_.store(true);
-    runningState_.store(false);
-}
+KPIRoverECU::KPIRoverECU(ProtocolHanlder* _protocolHandler, TCPTransport* _tcpTransport)
+    : protocol_handler_(_protocolHandler),
+      tcp_transport_(_tcpTransport),
+      counter_(GetCounter()),
+      runningProcess_(true),
+      runningState_(false) {}
 
 bool KPIRoverECU::Start() {
     tcp_transport_->Start();
-    timerThread_ = thread([this] { TimerThreadFuction(this->protocol_handler_); });
-    processingThread_ = thread([this] { ProcessingThreadFunction(); });
-
+    timerThread_ = std::thread([this] { TimerThreadFuction(this->protocol_handler_); });
+    processingThread_ = std::thread([this] { ProcessingThreadFunction(); });
 
     if (!timerThread_.joinable() || !processingThread_.joinable()) {
         std::cout << "Error creating thread" << '\n';
@@ -29,12 +32,11 @@ bool KPIRoverECU::Start() {
 }
 
 void KPIRoverECU::TimerThreadFuction(ProtocolHanlder* workClass) {
-    vector<uint8_t> stop_vector = workClass->MotorsStopMessage();
-
+    const std::vector<uint8_t> kStopVector = workClass->MotorsStopMessage();
 
     while (!runningState_) {
         if (counter_ > 0) {
-            rc_usleep(TIMERPRECISION);
+            rc_usleep(kTimerPrecision);
             counter_--;
 
             if (counter_ == 0) {
@@ -43,19 +45,19 @@ void KPIRoverECU::TimerThreadFuction(ProtocolHanlder* workClass) {
 
         } else if (counter_ == 0) {
             // command to stop all motors
-            workClass->HandleMessage(stop_vector);
+            workClass->HandleMessage(kStopVector);
 
-            rc_usleep(TIMESTOP * ONESECONDMICRO);
+            rc_usleep(kTimeStop * kOneSecondMicro);
         }
     }
 }
 
 void KPIRoverECU::ProcessingThreadFunction() {
     while (runningProcess_) {
-        vector<uint8_t> message;
+        std::vector<uint8_t> message;
         if (tcp_transport_->Receive(message)) {
             counter_.store(GetCounter());
-            const vector<uint8_t> kReturnMessage = protocol_handler_->HandleMessage(message);
+            const std::vector<uint8_t> kReturnMessage = protocol_handler_->HandleMessage(message);
             tcp_transport_->Send(kReturnMessage);
         }
     }
@@ -76,4 +78,4 @@ void KPIRoverECU::Stop() {
     tcp_transport_->Destroy();
 }
 
-int KPIRoverECU::GetCounter() { return (TIMESTOP * ONESECONDMICRO) / TIMERPRECISION; }
+int KPIRoverECU::GetCounter() { return (kTimeStop * kOneSecondMicro) / kTimerPrecision; }

@@ -1,30 +1,21 @@
 #ifndef KPIROVERECU_H
 #define KPIROVERECU_H
 
-#include "TCPTransport.h"
-//#include "config.h"
-#include "protocolHandler.h"
 #include <atomic>
-#include <condition_variable>
-#include <csignal>
-#include <cstring>
-#include <iostream>
-#include <mutex>
-#include <queue>
+#include <cstdint>
 #include <thread>
-#include <vector>
-#include <unistd.h>
 
-#define TIMERPRECISION 100000   // 100 miliseconds in microsecond (for timer)
-#define ONESECONDMICRO 1000000  // 1 s in microseconds
-#define ONESECONDMILI 1000
-#define TIMESTOP 1  // 1 second befre stopping all motors. If no new command is received over TCP for 1 second, all motors must stop.
+#include "TCPTransport.h"
+#include "protocolHandler.h"
 
-using namespace std;
+// Constants for timing control
+static constexpr std::uint32_t kTimerPrecision = 100000;   // 100 milliseconds in microsecond (for timer)
+static constexpr std::uint32_t kOneSecondMicro = 1000000;  // 1 s in microseconds
+static constexpr std::uint32_t kOneSecondMilli = 1000;     // 1 s in milliseconds
+static constexpr std::uint32_t kTimeStop = 5;              // 5 seconds
 
 class KPIRoverECU {
    public:
-    
     void TimerThreadFuction(ProtocolHanlder *workClass);
     void ProcessingThreadFunction();
 
@@ -35,12 +26,13 @@ class KPIRoverECU {
    private:
     ProtocolHanlder *protocol_handler_;
     TCPTransport *tcp_transport_;
-    thread timerThread_, processingThread_;
-    atomic<bool> runningProcess_;
-    atomic<bool> runningState_;
-    atomic<int> counter_;
+    std::thread timerThread_;
+    std::thread processingThread_;
+    std::atomic<bool> runningProcess_;
+    std::atomic<bool> runningState_;
+    std::atomic<int> counter_;
 
-    int GetCounter();
+    static int GetCounter();
 };
 
 #endif
