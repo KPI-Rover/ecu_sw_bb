@@ -1,8 +1,9 @@
 #ifndef MOCK_RC_MOTOR_H
 #define MOCK_RC_MOTOR_H
 
-#include <rc/motor.h>
 #include <gmock/gmock.h>
+#include <rc/motor.h>
+
 #include <memory>
 
 /**
@@ -10,7 +11,7 @@
  * This class is used in motor.cpp and needs to match the expected interface
  */
 class MockRCMotor {
-public:
+   public:
     MOCK_METHOD(int, init, (), ());
     MOCK_METHOD(int, cleanup, (), ());
     MOCK_METHOD(int, set, (int motor, double duty), ());
@@ -22,7 +23,7 @@ public:
 
 /**
  * @brief Get the MockRCMotor instance
- * 
+ *
  * @return MockRCMotor& Reference to the mock instance
  */
 MockRCMotor& GetMockRCMotor();
@@ -38,4 +39,4 @@ void ResetMockRCMotor();
  */
 void DestroyMockRCMotor();
 
-#endif // MOCK_RC_MOTOR_H
+#endif  // MOCK_RC_MOTOR_H

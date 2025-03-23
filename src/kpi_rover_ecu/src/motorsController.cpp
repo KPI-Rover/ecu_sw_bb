@@ -1,12 +1,21 @@
 #include "motorsController.h"
-#include <rc/start_stop.h>
-#include <rc/motor.h>
+
 #include <rc/encoder.h>
+#include <rc/motor.h>
+#include <rc/start_stop.h>
+
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+#include <vector>
+
 #include "motor.h"
 #include "motorConfig.h"
 
-int MotorController::Init(MotorConfig _motors[], uint8_t _motorNumber) {
-    if (rc_kill_existing_process(2.0) < -2) {
+constexpr double kKillProcessTimeout = 2.0;
+
+int MotorController::Init(const std::vector<MotorConfig>& _motors, uint8_t _motorNumber) {
+    if (rc_kill_existing_process(kKillProcessTimeout) < -2) {
         std::cout << "[ERROR][RC] rc_kill_existing_process" << '\n';
         return -1;
     }
@@ -31,29 +40,28 @@ int MotorController::Init(MotorConfig _motors[], uint8_t _motorNumber) {
     motor_number_ = _motorNumber;
 
     for (int i = 0; i < motor_number_; ++i) {
-        motors_.emplace_back(Motor(_motors[i].GetNumber(), _motors[i].IsInverted()));
+        motors_.emplace_back(_motors[i].GetNumber(), _motors[i].IsInverted());
     }
 
     return 0;
 }
 
 int MotorController::SetMotorRPM(int channel, int newRPM) {
-    if (abs(newRPM) > MIN_RPM) {
-        if (newRPM >= MAX_RPM) {
+    if (std::abs(newRPM) > Motor::kMinRpm) {
+        if (newRPM >= Motor::kMaxRpm) {
             std::cout << "[INFO][RC] Set RPM to max value" << '\n';
-            if (motors_[channel].MotorGo(MAX_RPM) != 0) {
-                std::cout << "[ERROR][RC] Error while stet new RPM" << '\n';
+            if (motors_[channel].MotorGo(Motor::kMaxRpm) != 0) {
+                std::cout << "[ERROR][RC] Error while set new RPM" << '\n';
                 return -1;
             }
         } else {
             if (motors_[channel].MotorGo(newRPM) != 0) {
-                std::cout << "[ERROR][RC] Error while stet new RPM" << '\n';
+                std::cout << "[ERROR][RC] Error while set new RPM" << '\n';
                 return -1;
             }
         }
-
     } else {
-        if (abs(newRPM) != 0) {
+        if (std::abs(newRPM) != 0) {
             std::cout << "[INFO][RC] Set RPM to stop because RPM less than MIN_RPM" << '\n';
         }
 
@@ -62,7 +70,6 @@ int MotorController::SetMotorRPM(int channel, int newRPM) {
             return -1;
         }
     }
-
     return 0;
 }
 

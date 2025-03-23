@@ -1,34 +1,33 @@
 #ifndef PROTOCOLHANDLER_H
 #define PROTOCOLHANDLER_H
 
-#include <arpa/inet.h>
+#include <cstdint>
 #include <cstring>
-#include <iostream>
 #include <vector>
-#include "motorsController.h"
 
-#define ID_GET_API_VERSION 0x01
-#define ID_SET_MOTOR_SPEED 0x02
-#define ID_SET_ALL_MOTORS_SPEED 0x03
-#define ID_GET_ENCODER 0x04
-#define ID_GET_ALL_ENCODERS 0x05
+#include "motorsController.h"
 
 class ProtocolHanlder {
    public:
-    
+    static constexpr uint8_t kApiVersion = 0x01;
+    static constexpr uint8_t kIdGetApiVersion = 0x01;
+    static constexpr uint8_t kIdSetMotorSpeed = 0x02;
+    static constexpr uint8_t kIdSetAllMotorsSpeed = 0x03;
+    static constexpr uint8_t kIdGetEncoder = 0x04;
+    static constexpr uint8_t kIdGetAllEncoders = 0x05;
 
-    ProtocolHanlder(MotorController* motorDriver);
+    explicit ProtocolHanlder(MotorController* motorDriver);
 
-    vector<uint8_t> HandleMessage(vector<uint8_t> message);
-    vector<uint8_t> MotorsStopMessage();
+    std::vector<uint8_t> HandleMessage(const std::vector<uint8_t>& message);
+    std::vector<uint8_t> MotorsStopMessage();
 
    private:
     MotorController* main_controller_;
-    vector<uint8_t> HandleSetMotorSpeed(vector<uint8_t> message);
-    vector<uint8_t> HandleGetApiVersion(vector<uint8_t> message) const ;
-    vector<uint8_t> HandleSetAllMotorsSpeed(vector<uint8_t> message);
-    vector<uint8_t> HandleGetEncoder(vector<uint8_t> message);
-    vector<uint8_t> HandleGetAllEncoders(vector<uint8_t> message) const ;
+    std::vector<uint8_t> HandleSetMotorSpeed(const std::vector<uint8_t>& message);
+    std::vector<uint8_t> HandleGetApiVersion(const std::vector<uint8_t>& message);
+    std::vector<uint8_t> HandleSetAllMotorsSpeed(const std::vector<uint8_t>& message);
+    std::vector<uint8_t> HandleGetEncoder(const std::vector<uint8_t>& message);
+    std::vector<uint8_t> HandleGetAllEncoders(const std::vector<uint8_t>& message) const;
 };
 
 #endif
