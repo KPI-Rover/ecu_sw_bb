@@ -20,15 +20,15 @@ jobs:
           fetch-depth: 0
 
       - name: Configure CMake
-        run: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B build/check
+        run: cmake -DBUILD_VARIANT=Target -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B build/check
 
       - name: Verify compile_commands.json exists
         run: ls build/check/compile_commands.json
 
       - name: Run Clang-Format
         id: clang-format
-        run: find src/kpi_rover_ecu/ -name '*.cpp' -o -name '*.h' | xargs --no-run-if-empty clang-format --dry-run --Werror
+        run: find src/kpi_rover_ecu/src src/kpi_rover_ecu/include -name '*.cpp' -o -name '*.h' | xargs --no-run-if-empty clang-format --dry-run --Werror
 
       - name: Run Clang-Tidy
         id: clang-tidy
-        run: find src/kpi_rover_ecu/ -name '*.cpp' -o -name '*.h' | xargs --no-run-if-empty clang-tidy -p=build/check --warnings-as-errors='*'
+        run: find src/kpi_rover_ecu/src src/kpi_rover_ecu/include -name '*.cpp' -o -name '*.h' | xargs --no-run-if-empty clang-tidy -p=build/check

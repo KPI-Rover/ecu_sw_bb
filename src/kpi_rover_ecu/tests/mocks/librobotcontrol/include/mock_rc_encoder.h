@@ -1,15 +1,16 @@
 #ifndef MOCK_RC_ENCODER_H
 #define MOCK_RC_ENCODER_H
 
-#include <rc/encoder.h>
 #include <gmock/gmock.h>
+#include <rc/encoder.h>
+
 #include <memory>
 
 /**
  * @brief Mock class for RC encoder functions
  */
 class MockRCEncoder {
-public:
+   public:
     MOCK_METHOD(int, init, ());
     MOCK_METHOD(int, cleanup, ());
     MOCK_METHOD(int, read, (int encoder));
@@ -20,7 +21,7 @@ public:
 
 /**
  * @brief Get the mock RC encoder instance
- * 
+ *
  * @return MockRCEncoder& Reference to the singleton mock instance
  */
 MockRCEncoder& GetMockRCEncoder();
@@ -36,4 +37,4 @@ void ResetMockRCEncoder();
  */
 void DestroyMockRCEncoder();
 
-#endif // MOCK_RC_ENCODER_H
+#endif  // MOCK_RC_ENCODER_H

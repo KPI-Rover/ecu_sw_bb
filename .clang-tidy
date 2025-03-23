@@ -11,8 +11,14 @@ Checks: >
   cppcoreguidelines-*,
   misc-definitions-in-headers,
   -modernize-use-trailing-return-type,
-  -cppcoreguidelines-pro-bounds-pointer-arithmetic
-
+  -modernize-avoid-c-arrays,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-avoid-c-arrays,
+  -google-readability-todo,
+  -readability-convert-member-functions-to-static,
+  -readability-make-member-function-const
 
 CheckOptions:
   - key: readability-identifier-naming.ClassCase

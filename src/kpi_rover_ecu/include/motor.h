@@ -1,23 +1,19 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
-
-#include <iostream>
-
-#define MIN_RPM 8000
-#define MAX_RPM 26500
-#define BRAKE_TIME 100000  // 100 ms
-
-using namespace std;
-
 class Motor {
    public:
-    Motor(int assignedNumber, bool isInverted);
+    static constexpr int kMinRpm = 8000;
+    static constexpr int kMaxRpm = 26500;
+
+    Motor(int assigned_number, bool is_inverted);
     int MotorGo(int newRPM);
-    int MotorStop() const ;
-    int GetEncoderCounter() const ;
+    int MotorStop() const;
+    int GetEncoderCounter() const;
 
    private:
+    static constexpr int kBrakeTime = 100000;  // 100 ms
+
     int motorNumber_;
     bool inverted_;
     double currentDutyCycle_;

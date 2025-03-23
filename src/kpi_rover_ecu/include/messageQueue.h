@@ -2,27 +2,24 @@
 #define MESSAGEQUEUE_H
 
 #include <pthread.h>
+
+#include <cstdint>
 #include <queue>
 #include <vector>
-#include <cstdint>  // Добавляем этот include для определения uint8_t
-
-#define ONESECONDMICRO 1000000  // 1 s in microseconds
-#define ONESECONDMILI 1000
-
-using namespace std;
 
 class MessageQueue {
    public:
-    void Push(const vector<uint8_t>& msg);
-    bool Pop(vector<uint8_t>& msg, int timeout_ms);
+    void Push(const std::vector<uint8_t>& msg);
+    bool Pop(std::vector<uint8_t>& msg, int timeout_ms);
     void Clear();
 
    private:
-    queue<vector<uint8_t>> queue_;
-    pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER;
-    pthread_cond_t cv_ = PTHREAD_COND_INITIALIZER;
-    // mutex mutex_;
-    // condition_variable cv_;
+    static constexpr int kMicrosecondsPerSecond = 1000000;
+    static constexpr int kMillisecondsPerSecond = 1000;
+
+    std::queue<std::vector<uint8_t>> queue_;
+    pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER;  // NOLINT(misc-include-cleaner)
+    pthread_cond_t cv_ = PTHREAD_COND_INITIALIZER;       // NOLINT(misc-include-cleaner)
 };
 
 #endif
