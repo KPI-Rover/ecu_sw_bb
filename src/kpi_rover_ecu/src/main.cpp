@@ -10,6 +10,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <thread>
+#include <chrono>
 
 #include "KPIRoverECU.h"
 #include "TCPTransport.h"
@@ -86,6 +88,7 @@ int main(int argc, char* argv[]) {
     }
 
     while (running_program) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     kpi_rover_ecu.Stop();

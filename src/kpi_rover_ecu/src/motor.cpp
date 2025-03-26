@@ -14,9 +14,9 @@ int Motor::MotorGo(int newRPM) {
         newRPM = kMaxRpm;
     }
 
-    if (newRPM < kMinRpm) {
+    if (newRPM < -kMaxRpm) {
         std::cout << "[Warning] RPM out of range\n";
-        newRPM = kMinRpm;
+        newRPM = -kMaxRpm;
     }
 
     currentDutyCycle_ = GetDC(newRPM);
