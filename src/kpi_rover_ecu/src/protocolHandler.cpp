@@ -18,7 +18,7 @@ constexpr uint8_t ProtocolHanlder::kIdSetAllMotorsSpeed;
 constexpr uint8_t ProtocolHanlder::kIdGetEncoder;
 constexpr uint8_t ProtocolHanlder::kIdGetAllEncoders;
 
-ProtocolHanlder::ProtocolHanlder(MotorController* motorDriver) : main_controller_(motorDriver) {}
+ProtocolHanlder::ProtocolHanlder(MotorController* motorDriver) : motors_controller_(motorDriver) {}
 
 vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(const vector<uint8_t>& message) {
     const uint8_t kMotorId = message[1];
@@ -32,7 +32,7 @@ vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(const vector<uint8_t>& mess
               << '\n';
     std::cout << "[INFO] Motor set run" << '\n';
 
-    if (main_controller_->SetMotorRPM(static_cast<int>(kMotorId), static_cast<int>(k_motor_rpm)) != 0) {
+    if (motors_controller_->SetMotorRPM(static_cast<int>(kMotorId), static_cast<int>(k_motor_rpm)) != 0) {
         std::cout << "[ERROR] Error setMotorRPM, retry connection" << '\n';
         return {};
     }
@@ -58,20 +58,20 @@ vector<uint8_t> ProtocolHanlder::HandleGetApiVersion(const vector<uint8_t>& mess
 }
 
 vector<uint8_t> ProtocolHanlder::HandleSetAllMotorsSpeed(const vector<uint8_t>& message) {
-    std::vector<int32_t> motors_rpm_arr(main_controller_->GetMotorsNumber(), 0);
+    std::vector<int32_t> motors_rpm_arr(motors_controller_->GetMotorsNumber(), 0);
     vector<uint8_t> ret_val;
 
-    for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
+    for (int i = 0; i < motors_controller_->GetMotorsNumber(); i++) {
         memcpy(&motors_rpm_arr[i], &message[1 + i * sizeof(int32_t)], sizeof(int32_t));
         motors_rpm_arr[i] = static_cast<int32_t>(ntohl(motors_rpm_arr[i]));
     }
 
-    for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
+    for (int i = 0; i < motors_controller_->GetMotorsNumber(); i++) {
         if (motors_rpm_arr[i] != 0) {
             std::cout << "[COMMAND] motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]) << '\n';
         }
 
-        if (main_controller_->SetMotorRPM(i, static_cast<int>(motors_rpm_arr[i])) != 0) {
+        if (motors_controller_->SetMotorRPM(i, static_cast<int>(motors_rpm_arr[i])) != 0) {
             std::cout << "[ERROR] Error setMotorRPM, retry connection" << '\n';
             return {};
         }
@@ -86,7 +86,7 @@ vector<uint8_t> ProtocolHanlder::HandleGetEncoder(const vector<uint8_t>& message
     vector<uint8_t> ret_val;
     std::cout << "[COMMAND] get motor " << static_cast<int>(kMotorId) << " encoder " << '\n';
 
-    const int32_t kMotorRpm = main_controller_->GetEncoderCounter(kMotorId);
+    const int32_t kMotorRpm = motors_controller_->GetEncoderCounter(kMotorId);
     ret_val.push_back(ProtocolHanlder::kIdGetEncoder);
 
     auto k_motor_rpm_order = static_cast<int32_t>(htonl(kMotorRpm));
@@ -103,8 +103,8 @@ vector<uint8_t> ProtocolHanlder::HandleGetAllEncoders(const vector<uint8_t>& mes
     ret_val.push_back(ProtocolHanlder::kIdGetAllEncoders);
 
     uint8_t buffer[sizeof(int32_t)];
-    for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
-        auto encoder_rpm = static_cast<int32_t>(htonl(main_controller_->GetEncoderCounter(i)));
+    for (int i = 0; i < motors_controller_->GetMotorsNumber(); i++) {
+        auto encoder_rpm = static_cast<int32_t>(htonl(motors_controller_->GetEncoderCounter(i)));
         std::memcpy(buffer, &encoder_rpm, sizeof(int32_t));
         ret_val.insert(ret_val.end(), buffer, buffer + sizeof(int32_t));
     }
@@ -144,7 +144,7 @@ vector<uint8_t> ProtocolHanlder::MotorsStopMessage() {
     int32_t stop_value = 0;
     ret_val.push_back(ProtocolHanlder::kIdSetAllMotorsSpeed);
     uint8_t buffer[sizeof(int32_t)];
-    for (int i = 0; i < main_controller_->GetMotorsNumber(); i++) {
+    for (int i = 0; i < motors_controller_->GetMotorsNumber(); i++) {
         std::memcpy(buffer, &stop_value, sizeof(int32_t));
         ret_val.insert(ret_val.end(), buffer, buffer + sizeof(int32_t));
     }
