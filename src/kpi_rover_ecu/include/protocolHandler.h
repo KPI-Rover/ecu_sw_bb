@@ -22,7 +22,7 @@ class ProtocolHanlder {
     std::vector<uint8_t> MotorsStopMessage();
 
    private:
-    MotorController* main_controller_;
+    MotorController* motors_controller_;
     std::vector<uint8_t> HandleSetMotorSpeed(const std::vector<uint8_t>& message);
     std::vector<uint8_t> HandleGetApiVersion(const std::vector<uint8_t>& message);
     std::vector<uint8_t> HandleSetAllMotorsSpeed(const std::vector<uint8_t>& message);

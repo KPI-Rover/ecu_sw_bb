@@ -47,29 +47,22 @@ int MotorController::Init(const std::vector<MotorConfig>& _motors, uint8_t _moto
 }
 
 int MotorController::SetMotorRPM(int channel, int newRPM) {
-    if (std::abs(newRPM) > Motor::kMinRpm) {
-        if (newRPM >= Motor::kMaxRpm) {
-            std::cout << "[INFO][RC] Set RPM to max value" << '\n';
-            if (motors_[channel].MotorGo(Motor::kMaxRpm) != 0) {
-                std::cout << "[ERROR][RC] Error while set new RPM" << '\n';
-                return -1;
-            }
-        } else {
-            if (motors_[channel].MotorGo(newRPM) != 0) {
-                std::cout << "[ERROR][RC] Error while set new RPM" << '\n';
-                return -1;
-            }
-        }
-    } else {
-        if (std::abs(newRPM) != 0) {
-            std::cout << "[INFO][RC] Set RPM to stop because RPM less than MIN_RPM" << '\n';
-        }
-
-        if (motors_[channel].MotorStop() != 0) {
-            std::cout << "[ERROR][RC] Error while set new RPM" << '\n';
-            return -1;
-        }
+    if (channel >= motor_number_) {
+        std::cout << "[ERROR][RC] Channel out of range" << '\n';
+        return -1;
     }
+
+    if (std::abs(newRPM) > Motor::kMaxRpm) {
+        std::cout << "[WARNING][RC] RPM out of range" << '\n';
+        newRPM = Motor::kMaxRpm;
+    }
+
+    int res = motors_[channel].MotorGo(newRPM);
+    if (res != 0) {
+        std::cout << "[ERROR][RC] Error while set new RPM" << '\n';
+        return -1;
+    }
+
     return 0;
 }
 
