@@ -54,7 +54,7 @@ password: temppwd
 
 ### Run program
 ```
-./kpi_rover_ecu -a 0.0.0.0 -p 6000
+sudo ./kpi_rover_ecu -a 0.0.0.0 -p 6000
 ```
 ## Code Style Check and Static Code Analysis
 

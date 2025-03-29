@@ -4,14 +4,14 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include <chrono>
 #include <csignal>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <thread>
-#include <chrono>
+#include <vector>
 
 #include "KPIRoverECU.h"
 #include "TCPTransport.h"
@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
 
     MotorController motors_processor;
     const uint8_t kMotorNumber = 4;
-    const std::vector<MotorConfig> kShassisVector = {MotorConfig(1, false), MotorConfig(2, false), MotorConfig(3, true),
-                                                     MotorConfig(4, true)};
+    const std::vector<MotorConfig> kShassisVector = {MotorConfig(3, false), MotorConfig(4, false), MotorConfig(1, true),
+                                                     MotorConfig(2, true)};
 
     motors_processor.Init(kShassisVector, kMotorNumber);
     ProtocolHanlder protocol_handler(&motors_processor);
