@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 
     // Command-line options
     int opt = 0;
-    while ((opt = getopt(argc, argv, "a:p:")) != -1) {
+    while ((opt = getopt(argc, argv, "a:p:c:i:d:")) != -1) {
         switch (opt) {
             case 'a':
                 server_address = optarg;
@@ -51,11 +51,11 @@ int main(int argc, char* argv[]) {
         }
     }
     // sem_init(&stopProgramSem, 0, 0);
-
+    // 4.42, 0.162
     MotorController motors_processor;
-    const uint8_t kMotorNumber = 4;
-    const std::vector<MotorConfig> kShassisVector = {MotorConfig(3, false), MotorConfig(4, false), MotorConfig(1, true),
-                                                     MotorConfig(2, true)};
+    const uint8_t kMotorNumber = MOTORS_NUMBER;
+    MotorConfig shassis_array[] = {MotorConfig(1, false, {1.5, 0.056, 1.5}), MotorConfig(2, false, {1.5, 0.056, 1.5}),
+                                   MotorConfig(3, true, {1.5, 0.056, 1.5}), MotorConfig(4, true, {1.5, 0.056, 1.5})};
 
     motors_processor.Init(kShassisVector, kMotorNumber);
     ProtocolHanlder protocol_handler(&motors_processor);
@@ -96,5 +96,6 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
 
 void InterruptSignalHandler(int signal) { running_program = false; }

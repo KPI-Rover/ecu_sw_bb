@@ -30,6 +30,8 @@ vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(const vector<uint8_t>& mess
 
     std::cout << "[COMMAND] motor " << static_cast<int>(kMotorId) << " new rpm " << static_cast<int>(k_motor_rpm)
               << '\n';
+    std::cout << "[COMMAND] motor " << static_cast<int>(kMotorId) << " new rpm " << static_cast<int>(k_motor_rpm)
+              << '\n';
     std::cout << "[INFO] Motor set run" << '\n';
 
     if (motors_controller_->SetMotorRPM(static_cast<int>(kMotorId), static_cast<int>(k_motor_rpm)) != 0) {

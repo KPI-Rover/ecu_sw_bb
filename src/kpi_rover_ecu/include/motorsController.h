@@ -1,11 +1,15 @@
 #ifndef MOTORSCONTROLLER_H
 #define MOTORSCONTROLLER_H
 
+#include <array>
 #include <cstdint>
+#include <iostream>
 #include <vector>
 
 #include "motor.h"
 #include "motorConfig.h"
+
+using namespace std;
 
 class MotorController {
    public:
