@@ -16,31 +16,37 @@ void PIDRegulator::Init(array<float, 3> _coeficients, int _loopsTicks, int _maxR
     // cout << "PID regulator initialized" << '\n';
 }
 
-int PIDRegulator::Run(int setpoint, int ticksValue) {
-    auto current_time_point = chrono::high_resolution_clock::now();
-    chrono::duration<double, std::milli> elapsed_milliseconds = current_time_point - lastTimePoint_;
-    lastTimePoint_ = current_time_point;
-    int time_dt = static_cast<uint32_t>(elapsed_milliseconds.count());
+int PIDRegulator::Run(int setpoint, int ticks_value) {
+    const auto kCurrentTimePoint = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double, std::milli> kElapsedMilliseconds =
+        kCurrentTimePoint - lastTimePoint_;
+    lastTimePoint_ = kCurrentTimePoint;
+    const auto kTimeDt = static_cast<float>(kElapsedMilliseconds.count());
 
-    float revolutions = static_cast<float>(ticksValue) / static_cast<float>(loopsTicks_);
+    const float kRevolutions = static_cast<float>(ticks_value) / static_cast<float>(loopsTicks_);
 
-    int input_point =
-        static_cast<int>(round((revolutions * SECONDSTOMINUTE * MILISECONDSTOSECOND) / time_dt)) * SPEEDINDEXMULTIPLIER;
-    int error = setpoint - input_point;  // get rid of abs() !!!
-    // cout << "set point " << setpoint << " current point " << input_point << " error " << error << '\n';
+    const float kInputPoint = static_cast<float>(
+        std::round((kRevolutions * SECONDSTOMINUTE * MILISECONDSTOSECOND) / kTimeDt)) *
+                            SPEEDINDEXMULTIPLIER;
+    const float kError = static_cast<float>(setpoint) - kInputPoint; // get rid of abs() !!!
+    cout << "set point " << setpoint << " current point " << kInputPoint << " error " << kError << '\n';
 
-    float P_term = kp_ * static_cast<float>(error);
+    const float kPTerm = kp_ * kError;
 
-    integral_ += error * time_dt;
-    if (integral_ > integralLimit_) integral_ = integralLimit_;
-    if (integral_ < -integralLimit_) integral_ = -integralLimit_;
+    integral_ += kError * kTimeDt;
+    if (integral_ > integralLimit_) {
+        integral_ = integralLimit_;
+    }
+    if (integral_ < -integralLimit_) {
+        integral_ = -integralLimit_;
+    }
 
-    float I_term = ki_ * integral_;
+    const float kITerm = ki_ * integral_;
 
-    int derivative_part = (time_dt > 0) ? (error - previousError_) / time_dt : 0;
-    float D_term = kd_ * derivative_part;
+    const float kDerivativePart = (kTimeDt > 0) ? (kError - previousError_) / kTimeDt : 0.0F;
+    const float kDTerm = kd_ * kDerivativePart;
 
-    previousError_ = error;
+    previousError_ = kError;
 
-    return static_cast<int>(P_term + I_term + D_term);
+    return static_cast<int>(kPTerm + kITerm + kDTerm);
 }
