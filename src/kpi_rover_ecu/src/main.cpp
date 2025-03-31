@@ -53,8 +53,8 @@ int main(int argc, char* argv[]) {
     // sem_init(&stopProgramSem, 0, 0);
     // 4.42, 0.162
     MotorController motors_processor;
-    const uint8_t kMotorNumber = MOTORS_NUMBER;
-    MotorConfig shassis_array[] = {MotorConfig(1, false, {1.5, 0.056, 1.5}), MotorConfig(2, false, {1.5, 0.056, 1.5}),
+    const uint8_t kMotorNumber = 4;
+    const std::vector<MotorConfig> kShassisVector = {MotorConfig(1, false, {1.5, 0.056, 1.5}), MotorConfig(2, false, {1.5, 0.056, 1.5}),
                                    MotorConfig(3, true, {1.5, 0.056, 1.5}), MotorConfig(4, true, {1.5, 0.056, 1.5})};
 
     motors_processor.Init(kShassisVector, kMotorNumber);

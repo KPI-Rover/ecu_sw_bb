@@ -2,7 +2,7 @@
 
 Motor::Motor(int assignedNumber, bool isInverted, array<float, 3> _coeficients)
     : motorNumber_(assignedNumber), inverted_(isInverted), currentDutyCycle_(0), currentRPM_(0) {
-    pidRegulator_.Init(_coeficients, LOOP_TICKS, MAX_RPM);
+    pidRegulator_.Init(_coeficients, kLoopTicks, kMaxRpm);
 }
 
 int Motor::MotorGo(int newRPM) {
@@ -34,7 +34,7 @@ int Motor::MotorStop() {
         return -1;
     }
 
-    rc_usleep(BRAKE_TIME);
+    rc_usleep(kBrakeTime);
 
     if (rc_motor_free_spin(motorNumber_) != 0) {
         std::cout << "[ERROR][RC] rc_motor_free_spin" << '\n';

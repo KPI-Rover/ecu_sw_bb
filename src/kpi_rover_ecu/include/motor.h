@@ -9,15 +9,16 @@
 
 #include "PIDRegulator.h"
 
-#define MIN_RPM 8000
-#define MAX_RPM 26500
-#define BRAKE_TIME 100000  // 100 ms
-#define LOOP_TICKS 821
 
 using namespace std;
 
 class Motor {
    public:
+    static constexpr int kMinRpm = 8000;
+    static constexpr int kMaxRpm = 26500;
+    static constexpr int kLoopTicks = 821;
+
+
     Motor(int assignedNumber, bool isInverted, array<float, 3> _coeficients);
     int MotorGo(int newRPM);
     int MotorStop();
