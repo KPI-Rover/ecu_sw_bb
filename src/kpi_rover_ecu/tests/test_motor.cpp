@@ -38,7 +38,7 @@ TEST_F(MotorTest, MotorGoCallsRcMotorSet) {
     // Expect rc_motor_set to be called with channel 0 and duty cycle 256/1000.0
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::DoubleEq(1))).WillOnce(::testing::Return(0));
 
-    motor = new Motor(0, false);
+    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->MotorGo(Motor::kMaxRpm);
 
     EXPECT_EQ(0, result) << "MotorGo should return success";
@@ -48,7 +48,7 @@ TEST_F(MotorTest, MotorGoCallsRcMotorSet) {
 TEST_F(MotorTest, MotorGoMinRPM) {
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::_)).WillOnce(::testing::Return(0));
 
-    motor = new Motor(0, false);
+    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->MotorGo(Motor::kMinRpm);
 
     EXPECT_EQ(0, result);
@@ -59,7 +59,7 @@ TEST_F(MotorTest, MotorGoInverted) {
     // For inverted motor, the duty cycle should be negative
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::Lt(0))).WillOnce(::testing::Return(0));
 
-    motor = new Motor(0, true);
+    motor = new Motor(0, true, {1.5f, 0.056f, 1.5f});
     int result = motor->MotorGo(Motor::kMaxRpm);
 
     EXPECT_EQ(0, result);
@@ -70,7 +70,7 @@ TEST_F(MotorTest, MotorGoBelowMinRPM) {
     // Verify behavior with RPM below minimum (should set to MIN_RPM or handle specially)
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::_)).WillOnce(::testing::Return(0));
 
-    motor = new Motor(0, false);
+    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->MotorGo(Motor::kMinRpm - 1);
 
     EXPECT_EQ(0, result);
@@ -81,7 +81,7 @@ TEST_F(MotorTest, MotorGoAboveMaxRPM) {
     // Verify behavior with RPM above maximum (should clamp to MAX_RPM)
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::DoubleEq(1))).WillOnce(::testing::Return(0));
 
-    motor = new Motor(0, false);
+    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->MotorGo(Motor::kMaxRpm + 1);
 
     EXPECT_EQ(0, result);
@@ -91,7 +91,7 @@ TEST_F(MotorTest, MotorGoAboveMaxRPM) {
 TEST_F(MotorTest, MotorGoSetError) {
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::_)).WillOnce(::testing::Return(-1));
 
-    motor = new Motor(0, false);
+    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->MotorGo(Motor::kMaxRpm);
 
     EXPECT_NE(0, result) << "MotorGo should return error";
@@ -102,7 +102,7 @@ TEST_F(MotorTest, MotorStop) {
     // Stopping motor should set duty cycle to 0
     EXPECT_CALL(GetMockRCMotor(), brake(0)).WillOnce(::testing::Return(0));
 
-    motor = new Motor(0, false);
+    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->MotorStop();
 
     EXPECT_EQ(0, result) << "MotorStop should return success";
@@ -112,7 +112,7 @@ TEST_F(MotorTest, MotorStop) {
 TEST_F(MotorTest, MotorStopError) {
     EXPECT_CALL(GetMockRCMotor(), brake(0)).WillOnce(::testing::Return(-1));
 
-    motor = new Motor(0, false);
+    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->MotorStop();
 
     EXPECT_NE(0, result) << "MotorStop should return error";
@@ -122,7 +122,7 @@ TEST_F(MotorTest, MotorStopError) {
 TEST_F(MotorTest, GetEncoderCounter) {
     EXPECT_CALL(GetMockRCEncoder(), read(0)).WillOnce(::testing::Return(42));
 
-    motor = new Motor(0, false);
+    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->GetEncoderCounter();
 
     EXPECT_EQ(42, result) << "GetEncoderCounter should return encoder value";
@@ -132,7 +132,7 @@ TEST_F(MotorTest, GetEncoderCounter) {
 TEST_F(MotorTest, GetEncoderCounterError) {
     EXPECT_CALL(GetMockRCEncoder(), read(0)).WillOnce(::testing::Return(-1));
 
-    motor = new Motor(0, false);
+    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->GetEncoderCounter();
 
     EXPECT_EQ(-1, result) << "GetEncoderCounter should return error";

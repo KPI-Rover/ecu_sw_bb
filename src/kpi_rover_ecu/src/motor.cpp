@@ -3,13 +3,17 @@
 #include <rc/encoder.h>
 #include <rc/motor.h>
 
+#include <array>
+#include <chrono>
+#include <cmath>
 #include <iostream>
 
 #include "PIDRegulator.h"
 
 Motor::Motor(int assigned_number, bool is_inverted, std::array<float, 3> _coeficients)
-    : motorNumber_(assigned_number), inverted_(is_inverted), currentDutyCycle_(0), currentRpm_(0) {
-    pidRegulator_.Init(_coeficients, kLoopTicks, kMaxRpm);
+    : motorNumber_(assigned_number), inverted_(is_inverted), currentDutyCycle_(0), setpointRpm_(0), actualRpm_(0) {
+    pidRegulator_.Init(_coeficients);
+    lastTimePoint_ = std::chrono::high_resolution_clock::now();
 }
 
 int Motor::MotorGo(int newRPM) {
@@ -27,7 +31,7 @@ int Motor::MotorGo(int newRPM) {
         return -1;
     }
 
-    currentRpm_ = newRPM;
+    setpointRpm_ = newRPM;
     return 0;
 }
 
@@ -61,10 +65,24 @@ int Motor::GetEncoderCounter() {
         pid_encoder_ticks *= -1;
     }
 
-    const int kPidOutput = pidRegulator_.Run(currentRpm_, pid_encoder_ticks);
+    const auto kCurrentTimePoint = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double, std::milli> kElapsedMilliseconds = kCurrentTimePoint - lastTimePoint_;
+    lastTimePoint_ = kCurrentTimePoint;
+    const auto kTimeDt = static_cast<float>(kElapsedMilliseconds.count());
+
+    const float kRevolutions = static_cast<float>(pid_encoder_ticks) / static_cast<float>(kLoopTicks);
+    const float kInputPoint =
+        static_cast<float>(std::round((kRevolutions * SECONDSTOMINUTE * MILISECONDSTOSECOND) / kTimeDt)) *
+        kSpeedIndexMultipler;
+    actualRpm_ = static_cast<int>(kInputPoint);
+    const float kError = static_cast<float>(setpointRpm_) - kInputPoint;
+
+    std::cout << "set point " << setpointRpm_ << " current point " << kInputPoint << " error " << kError << '\n';
+
+    const int kPidOutput = pidRegulator_.Run(kError, kTimeDt);
     rc_encoder_write(motorNumber_, 0);
 
-    MotorSet(currentRpm_ + kPidOutput);
+    MotorSet(setpointRpm_ + kPidOutput);
     return kEncoderTicks;
 }
 
