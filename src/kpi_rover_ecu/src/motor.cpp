@@ -72,7 +72,7 @@ int Motor::GetEncoderCounter() {
 
     const float kRevolutions = static_cast<float>(pid_encoder_ticks) / static_cast<float>(kLoopTicks);
     const float kInputPoint =
-        static_cast<float>(std::round((kRevolutions * SECONDSTOMINUTE * MILISECONDSTOSECOND) / kTimeDt)) *
+        static_cast<float>(std::round((kRevolutions * kSecondsMinute * kMiliSecondsSeconds) / kTimeDt)) *
         kSpeedIndexMultipler;
     actualRpm_ = static_cast<int>(kInputPoint);
     const float kError = static_cast<float>(setpointRpm_) - kInputPoint;

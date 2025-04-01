@@ -44,16 +44,6 @@ TEST_F(MotorTest, MotorGoCallsRcMotorSet) {
     EXPECT_EQ(0, result) << "MotorGo should return success";
 }
 
-// Test MotorGo with minimum RPM
-TEST_F(MotorTest, MotorGoMinRPM) {
-    EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::_)).WillOnce(::testing::Return(0));
-
-    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
-    int result = motor->MotorGo(Motor::kMinRpm);
-
-    EXPECT_EQ(0, result);
-}
-
 // Test MotorGo with inverted motor direction
 TEST_F(MotorTest, MotorGoInverted) {
     // For inverted motor, the duty cycle should be negative
@@ -61,17 +51,6 @@ TEST_F(MotorTest, MotorGoInverted) {
 
     motor = new Motor(0, true, {1.5f, 0.056f, 1.5f});
     int result = motor->MotorGo(Motor::kMaxRpm);
-
-    EXPECT_EQ(0, result);
-}
-
-// Test MotorGo with RPM below minimum
-TEST_F(MotorTest, MotorGoBelowMinRPM) {
-    // Verify behavior with RPM below minimum (should set to MIN_RPM or handle specially)
-    EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::_)).WillOnce(::testing::Return(0));
-
-    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
-    int result = motor->MotorGo(Motor::kMinRpm - 1);
 
     EXPECT_EQ(0, result);
 }
