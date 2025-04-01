@@ -54,8 +54,12 @@ int main(int argc, char* argv[]) {
 
     MotorController motors_processor;
     const uint8_t kMotorNumber = 4;
-    const std::vector<MotorConfig> kShassisVector = {MotorConfig(3, false), MotorConfig(4, false), MotorConfig(1, true),
-                                                     MotorConfig(2, true)};
+    const std::vector<MotorConfig> kShassisVector = {
+        MotorConfig(3, false, {1.5, 0.056, 1.5}),
+        MotorConfig(4, false, {1.5, 0.056, 1.5}),
+        MotorConfig(1, true, {1.5, 0.056, 1.5}),
+        MotorConfig(2, true, {1.5, 0.056, 1.5})
+    };
 
     motors_processor.Init(kShassisVector, kMotorNumber);
     ProtocolHanlder protocol_handler(&motors_processor);
