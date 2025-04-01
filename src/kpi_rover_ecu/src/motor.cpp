@@ -1,10 +1,11 @@
 #include "motor.h"
-#include "PIDRegulator.h"
 
 #include <rc/encoder.h>
 #include <rc/motor.h>
 
 #include <iostream>
+
+#include "PIDRegulator.h"
 
 Motor::Motor(int assigned_number, bool is_inverted, std::array<float, 3> _coeficients)
     : motorNumber_(assigned_number), inverted_(is_inverted), currentDutyCycle_(0), currentRpm_(0) {
@@ -21,7 +22,6 @@ int Motor::MotorGo(int newRPM) {
         std::cout << "[Warning] RPM out of range\n";
         newRPM = -kMaxRpm;
     }
-
 
     if (MotorSet(newRPM) == -1) {
         return -1;

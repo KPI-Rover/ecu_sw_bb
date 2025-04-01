@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <chrono>
 #include <array>
+#include <chrono>
 
 #define SECONDSTOMINUTE 60
 #define MILISECONDSTOSECOND 1000
-#define SPEEDINDEXMULTIPLIER 100
 
 class PIDRegulator {
    public:
@@ -22,8 +21,9 @@ class PIDRegulator {
     float kd_;
     int previousError_ = 0;
     int integral_ = 0;
-    const int integralLimit_ = 26500;
-    const int outputLimit_ = 26500;
+    const int kintegralLimit_ = 26500;
+    const int koutputLimit_ = 26500;
+    const int kSpeedIndexMultipler_ = 100;
     int loopsTicks_;
     int maxRPM_;
 

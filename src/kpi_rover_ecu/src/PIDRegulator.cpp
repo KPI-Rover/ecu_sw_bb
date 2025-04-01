@@ -19,27 +19,27 @@ void PIDRegulator::Init(std::array<float, 3> _coeficients, int _loopsTicks, int 
 
 int PIDRegulator::Run(int setpoint, int ticks_value) {
     const auto kCurrentTimePoint = std::chrono::high_resolution_clock::now();
-    const std::chrono::duration<double, std::milli> kElapsedMilliseconds =
-        kCurrentTimePoint - lastTimePoint_;
+    const std::chrono::duration<double, std::milli> kElapsedMilliseconds = kCurrentTimePoint - lastTimePoint_;
     lastTimePoint_ = kCurrentTimePoint;
     const auto kTimeDt = static_cast<float>(kElapsedMilliseconds.count());
 
     const float kRevolutions = static_cast<float>(ticks_value) / static_cast<float>(loopsTicks_);
 
-    const float kInputPoint = static_cast<float>(
-        std::round((kRevolutions * SECONDSTOMINUTE * MILISECONDSTOSECOND) / kTimeDt)) *
-                            SPEEDINDEXMULTIPLIER;
-    const float kError = static_cast<float>(setpoint) - kInputPoint; // get rid of abs() !!!
+    const float kInputPoint =
+        static_cast<float>(std::round((kRevolutions * SECONDSTOMINUTE * MILISECONDSTOSECOND) / kTimeDt)) *
+        kSpeedIndexMultipler_;
+
+    const float kError = static_cast<float>(setpoint) - kInputPoint;
     std::cout << "set point " << setpoint << " current point " << kInputPoint << " error " << kError << '\n';
 
     const float kPTerm = kp_ * kError;
 
     integral_ += kError * kTimeDt;
-    if (integral_ > integralLimit_) {
-        integral_ = integralLimit_;
+    if (integral_ > kintegralLimit_) {
+        integral_ = kintegralLimit_;
     }
-    if (integral_ < -integralLimit_) {
-        integral_ = -integralLimit_;
+    if (integral_ < -kintegralLimit_) {
+        integral_ = -kintegralLimit_;
     }
 
     const float kITerm = ki_ * integral_;

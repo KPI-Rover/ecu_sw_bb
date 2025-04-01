@@ -2,6 +2,7 @@
 #define MOTOR_H
 
 #include <array>
+
 #include "PIDRegulator.h"
 
 class Motor {
