@@ -20,6 +20,8 @@ class Motor {
     int GetEncoderCounter();
 
    private:
+    float GetSpeedError(int _ticks, float _timeSegment);
+    float GetTimeSegment();
     int MotorSet(int inputRPM);
 
     PIDRegulator pidRegulator_;

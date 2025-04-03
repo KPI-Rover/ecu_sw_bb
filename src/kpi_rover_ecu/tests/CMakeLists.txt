@@ -30,6 +30,8 @@ add_executable(unitTests
     test_motor.cpp
     test_protocol.cpp
     test_message_queue.cpp
+    test_motor_controller.cpp
+    test_pid_regulator.cpp
 )
 
 target_link_libraries(unitTests

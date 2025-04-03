@@ -58,6 +58,25 @@ int Motor::MotorStop() const {
     return 0;
 }
 
+float Motor::GetTimeSegment() {
+    const auto kCurrentTimePoint = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double, std::milli> kElapsedMilliseconds = kCurrentTimePoint - lastTimePoint_;
+    lastTimePoint_ = kCurrentTimePoint;
+    return static_cast<float>(kElapsedMilliseconds.count());
+}
+
+float Motor::GetSpeedError(int _ticks, float _timeSegment) {
+    const float kRevolutions = static_cast<float>(_ticks) / static_cast<float>(kLoopTicks);
+    const float kInputPoint =
+        static_cast<float>(std::round((kRevolutions * kSecondsMinute * kMiliSecondsSeconds) / _timeSegment)) *
+        kSpeedIndexMultipler;
+    actualRpm_ = static_cast<int>(kInputPoint);
+    const float kError = static_cast<float>(setpointRpm_) - kInputPoint;
+    std::cout << "set point " << setpointRpm_ << " current point " << kInputPoint << " error " << kError << '\n';
+
+    return kError;
+}
+
 int Motor::GetEncoderCounter() {
     const int kEncoderTicks = rc_encoder_read(motorNumber_);
     int pid_encoder_ticks = kEncoderTicks;
@@ -65,19 +84,8 @@ int Motor::GetEncoderCounter() {
         pid_encoder_ticks *= -1;
     }
 
-    const auto kCurrentTimePoint = std::chrono::high_resolution_clock::now();
-    const std::chrono::duration<double, std::milli> kElapsedMilliseconds = kCurrentTimePoint - lastTimePoint_;
-    lastTimePoint_ = kCurrentTimePoint;
-    const auto kTimeDt = static_cast<float>(kElapsedMilliseconds.count());
-
-    const float kRevolutions = static_cast<float>(pid_encoder_ticks) / static_cast<float>(kLoopTicks);
-    const float kInputPoint =
-        static_cast<float>(std::round((kRevolutions * kSecondsMinute * kMiliSecondsSeconds) / kTimeDt)) *
-        kSpeedIndexMultipler;
-    actualRpm_ = static_cast<int>(kInputPoint);
-    const float kError = static_cast<float>(setpointRpm_) - kInputPoint;
-
-    std::cout << "set point " << setpointRpm_ << " current point " << kInputPoint << " error " << kError << '\n';
+    const float kTimeDt = GetTimeSegment();
+    const float kError = GetSpeedError(pid_encoder_ticks, kTimeDt);
 
     const int kPidOutput = pidRegulator_.Run(kError, kTimeDt);
     rc_encoder_write(motorNumber_, 0);

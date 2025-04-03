@@ -66,6 +66,17 @@ TEST_F(MotorTest, MotorGoAboveMaxRPM) {
     EXPECT_EQ(0, result);
 }
 
+// Test MotorGo with RPM below -maximum
+TEST_F(MotorTest, MotorGoBelowMinusMaxRPM) {
+    // Verify behaviour with RPM below -maximum (should clamp to -MAX_RPM)
+    EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::DoubleEq(-1))).WillOnce(::testing::Return(0));
+
+    motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
+    int result = motor->MotorGo(-Motor::kMaxRpm - 1);
+
+    EXPECT_EQ(0, result);
+}
+
 // Test MotorGo with set function returning error
 TEST_F(MotorTest, MotorGoSetError) {
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::_)).WillOnce(::testing::Return(-1));
