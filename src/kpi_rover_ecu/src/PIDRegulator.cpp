@@ -13,11 +13,11 @@ int PIDRegulator::Run(float kError, float kTimeDt) {
     const float kPTerm = kp_ * kError;
 
     integral_ += kError * kTimeDt;
-    if (integral_ > kIntegralLimit) {
-        integral_ = kIntegralLimit;
+    if (integral_ > integralLimit_) {
+        integral_ = integralLimit_;
     }
-    if (integral_ < -kIntegralLimit) {
-        integral_ = -kIntegralLimit;
+    if (integral_ < -integralLimit_) {
+        integral_ = -integralLimit_;
     }
 
     const float kITerm = ki_ * integral_;

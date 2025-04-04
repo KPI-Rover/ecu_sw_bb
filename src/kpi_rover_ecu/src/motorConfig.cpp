@@ -1,5 +1,6 @@
 #include "motorConfig.h"
 
+#include <array>
 #include <cstdint>
 
 MotorConfig::MotorConfig(uint8_t assignedNumber, bool invertedStatus, const std::array<float, 3>& _coefs)

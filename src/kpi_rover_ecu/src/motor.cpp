@@ -7,6 +7,7 @@
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <ratio>
 
 #include "PIDRegulator.h"
 
@@ -65,16 +66,11 @@ float Motor::GetTimeSegment() {
     return static_cast<float>(kElapsedMilliseconds.count());
 }
 
-float Motor::GetSpeedError(int _ticks, float _timeSegment) {
+float Motor::GetActualRpm(int _ticks, float _timeSegment) {
     const float kRevolutions = static_cast<float>(_ticks) / static_cast<float>(kLoopTicks);
     const float kInputPoint =
-        static_cast<float>(std::round((kRevolutions * kSecondsMinute * kMiliSecondsSeconds) / _timeSegment)) *
-        kSpeedIndexMultipler;
-    actualRpm_ = static_cast<int>(kInputPoint);
-    const float kError = static_cast<float>(setpointRpm_) - kInputPoint;
-    std::cout << "set point " << setpointRpm_ << " current point " << kInputPoint << " error " << kError << '\n';
-
-    return kError;
+        (std::round((kRevolutions * kSecondsMinute * kMiliSecondsSeconds) / _timeSegment)) * kSpeedIndexMultipler;
+    return kInputPoint;
 }
 
 int Motor::GetEncoderCounter() {
@@ -85,9 +81,11 @@ int Motor::GetEncoderCounter() {
     }
 
     const float kTimeDt = GetTimeSegment();
-    const float kError = GetSpeedError(pid_encoder_ticks, kTimeDt);
+    actualRpm_ = static_cast<int>(GetActualRpm(pid_encoder_ticks, kTimeDt));
+    const int kError = setpointRpm_ - actualRpm_;
+    std::cout << "set point " << setpointRpm_ << " current point " << actualRpm_ << " error " << kError << '\n';
 
-    const int kPidOutput = pidRegulator_.Run(kError, kTimeDt);
+    const int kPidOutput = pidRegulator_.Run(static_cast<float>(kError), kTimeDt);
     rc_encoder_write(motorNumber_, 0);
 
     MotorSet(setpointRpm_ + kPidOutput);

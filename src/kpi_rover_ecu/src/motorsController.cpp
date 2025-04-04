@@ -9,7 +9,6 @@
 #include <iostream>
 #include <vector>
 
-#include "motor.h"
 #include "motorConfig.h"
 
 constexpr double kKillProcessTimeout = 2.0;
@@ -52,8 +51,8 @@ int MotorController::SetMotorRPM(int channel, int newRPM) {
         return -1;
     }
 
-    int res = motors_[channel].MotorGo(newRPM);
-    if (res != 0) {
+    const int kRes = motors_[channel].MotorGo(newRPM);
+    if (kRes != 0) {
         std::cout << "[ERROR][RC] Error while set new RPM" << '\n';
         return -1;
     }

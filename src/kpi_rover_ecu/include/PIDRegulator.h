@@ -16,7 +16,7 @@ class PIDRegulator {
     float kd_ = 0;
     float previousError_ = 0;
     float integral_ = 0;
-    const float kIntegralLimit = 26500;
+    float integralLimit_ = 26500;
 };
 
 #endif
