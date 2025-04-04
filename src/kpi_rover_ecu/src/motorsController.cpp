@@ -9,7 +9,6 @@
 #include <iostream>
 #include <vector>
 
-#include "motor.h"
 #include "motorConfig.h"
 
 constexpr double kKillProcessTimeout = 2.0;
@@ -40,7 +39,7 @@ int MotorController::Init(const std::vector<MotorConfig>& _motors, uint8_t _moto
     motor_number_ = _motorNumber;
 
     for (int i = 0; i < motor_number_; ++i) {
-        motors_.emplace_back(_motors[i].GetNumber(), _motors[i].IsInverted());
+        motors_.emplace_back(_motors[i].GetNumber(), _motors[i].IsInverted(), _motors[i].GetPidCoefs());
     }
 
     return 0;
@@ -52,8 +51,8 @@ int MotorController::SetMotorRPM(int channel, int newRPM) {
         return -1;
     }
 
-    int res = motors_[channel].MotorGo(newRPM);
-    if (res != 0) {
+    const int kRes = motors_[channel].MotorGo(newRPM);
+    if (kRes != 0) {
         std::cout << "[ERROR][RC] Error while set new RPM" << '\n';
         return -1;
     }

@@ -48,8 +48,8 @@ class ProtocolTest : public ::testing::Test {
         EXPECT_CALL(GetMockRCEncoder(), init()).WillOnce(::testing::Return(0));
 
         // Initialize with the same configuration as in main.cpp
-        std::vector<MotorConfig> chassis_config = {MotorConfig(1, false), MotorConfig(2, false), MotorConfig(3, true),
-                                                   MotorConfig(4, true)};
+        std::vector<MotorConfig> chassis_config = {MotorConfig(1, false, {1.5f, 0.056f, 1.5f}), MotorConfig(2, false, {1.5f, 0.056f, 1.5f}), MotorConfig(3, true, {1.5f, 0.056f, 1.5f}),
+                                                   MotorConfig(4, true, {1.5f, 0.056f, 1.5f})};
 
         motors_processor.Init(chassis_config, kMotorNumber);
         protocol_handler = new ProtocolHanlder(&motors_processor);
