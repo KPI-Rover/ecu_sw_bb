@@ -18,6 +18,7 @@
 #include "motorConfig.h"
 #include "motorsController.h"
 #include "protocolHandler.h"
+#include "IMUController.h"
 
 using std::atomic;
 using std::signal;
@@ -64,6 +65,14 @@ int main(int argc, char* argv[]) {
     motors_processor.Init(kShassisVector, kMotorNumber);
     ProtocolHanlder protocol_handler(&motors_processor);
 
+    IMUController imu_controller;
+
+    if (imu_controller.Init() == -1) {
+        std::cout << "[ERROR] Error initializing IMU controller" << '\n';
+        imu_controller.Stop();
+        return 1;
+    }
+
     TCPTransport tcp_transport(server_address, server_portnum);
 
     if (tcp_transport.Init() == -1) {
@@ -74,7 +83,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "start ..." << '\n';
 
-    KPIRoverECU kpi_rover_ecu(&protocol_handler, &tcp_transport);
+    KPIRoverECU kpi_rover_ecu(&protocol_handler, &tcp_transport, &imu_controller);
 
     if (!kpi_rover_ecu.Start()) {
         std::cout << "Error In intitalizing main class" << '\n';

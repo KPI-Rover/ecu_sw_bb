@@ -7,6 +7,7 @@ add_library(kpi_rover_ecu_core STATIC
     motorConfig.cpp
     messageQueue.cpp
     PIDRegulator.cpp
+    IMUController.cpp
 )
 
 # Include public headers
