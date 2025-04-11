@@ -19,6 +19,7 @@
 #include "motorsController.h"
 #include "protocolHandler.h"
 #include "IMUController.h"
+#include "UDPClient.h"
 
 using std::atomic;
 using std::signal;
@@ -31,12 +32,15 @@ void InterruptSignalHandler(int signal);
 int main(int argc, char* argv[]) {
     const char* server_address = "0.0.0.0";
     const int kDefaultPortNum = 5500;
+    const char* udp_server_address = "127.0.0.1";
+    const int  kUdpDefaultPortNum = 6000;
     const int kBase = 10;  // Named constant for base 10
     int server_portnum = kDefaultPortNum;
+    int udp_server_portnum = kUdpDefaultPortNum;
 
     // Command-line options
     int opt = 0;
-    while ((opt = getopt(argc, argv, "a:p:")) != -1) {
+    while ((opt = getopt(argc, argv, "a:p:i:c:")) != -1) {
         switch (opt) {
             case 'a':
                 server_address = optarg;
@@ -44,10 +48,18 @@ int main(int argc, char* argv[]) {
             case 'p':
                 server_portnum = strtol(optarg, nullptr, kBase);
                 break;
+            case 'i':
+                udp_server_address = optarg;
+                break;
+            case 'c':
+                udp_server_portnum = strtol(optarg, nullptr, kBase);
+                break;
             default:
                 std::cout << "Usage: " << argv[0] << '\n';
                 std::cout << " [-a server_address] " << '\n';
                 std::cout << " [-p server_portnum]" << '\n';
+                std::cout << " [-i udp_server_address] " << '\n';
+                std::cout << " [-c udp_server_portnum]" << '\n';
                 return EXIT_FAILURE;
         }
     }
@@ -74,16 +86,18 @@ int main(int argc, char* argv[]) {
     }
 
     TCPTransport tcp_transport(server_address, server_portnum);
+    UDPClient udp_client(udp_server_address, udp_server_portnum);
 
-    if (tcp_transport.Init() == -1) {
+    if (tcp_transport.Init() == -1 || udp_client.Init() == -1) {
         std::cout << "[ERROR] Error creating socket" << '\n';
         tcp_transport.Destroy();
+        udp_client.Destroy();
         return 1;
     }
 
     std::cout << "start ..." << '\n';
 
-    KPIRoverECU kpi_rover_ecu(&protocol_handler, &tcp_transport, &imu_controller);
+    KPIRoverECU kpi_rover_ecu(&protocol_handler, &tcp_transport, &udp_client, &imu_controller);
 
     if (!kpi_rover_ecu.Start()) {
         std::cout << "Error In intitalizing main class" << '\n';

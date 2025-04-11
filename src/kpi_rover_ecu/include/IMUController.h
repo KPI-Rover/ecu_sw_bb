@@ -3,6 +3,7 @@
 
 #include <rc/mpu.h>
 
+#include <cstdint>
 #include <vector>
 
 class IMUController {
@@ -13,8 +14,10 @@ class IMUController {
 	 bool GetEnable();
 	 void Stop();
 	 std::vector<float> GetData();
+	 uint8_t GetId();
 	 
 	private:
+	 const int kIdGetCommand = 0x06;
 	 const int kI2cBus = 2;
 	 const int kGpioIntPinChip = 3;
 	 const int kGpioIntPinPin = 21;

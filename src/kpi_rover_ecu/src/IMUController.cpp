@@ -2,6 +2,7 @@
 
 #include <rc/mpu.h>
 
+#include <cstdint>
 #include <iostream>
 #include <pthread.h>
 #include <vector>
@@ -82,3 +83,5 @@ std::vector<float> IMUController::GetQaternion() {
 void IMUController::Stop() {
 	rc_mpu_power_off();
 }
+
+uint8_t IMUController::GetId() { return kIdGetCommand; }

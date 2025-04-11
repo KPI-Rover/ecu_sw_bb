@@ -11,10 +11,11 @@
 #include "TCPTransport.h"
 #include "protocolHandler.h"
 
-KPIRoverECU::KPIRoverECU(ProtocolHanlder* _protocolHandler, TCPTransport* _tcpTransport, IMUController *_imuController)
+KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, UDPClient *_udpClient, IMUController *_imuController)
     : protocol_handler_(_protocolHandler),
       tcp_transport_(_tcpTransport),
       imu_controller_(_imuController),
+      udp_client_(_udpClient),
       counter_(GetCounter()),
       runningProcess_(true),
       runningState_(false) {}
@@ -34,12 +35,42 @@ bool KPIRoverECU::Start() {
 }
 
 void KPIRoverECU::IMUThreadFucntion(IMUController* workClass) {
+    uint16_t packet_number = 0;
+
     while (runningProcess_) {
         if (workClass->GetEnable()) {
-            const std::vector<float> kImuData = workClass->GetData();
+            if (packet_number == k16MaxCount) {
+                packet_number = 0;
+            }
+            packet_number += 1;
 
-            std::cout << kImuData[0] << " " << kImuData[4] <<  " " << kImuData[6] << " " << kImuData[7] << " " <<  kImuData[8] << " " << kImuData[9] << '\n'; 
-            /* Development here */
+            const std::vector<float> kImuData = workClass->GetData();
+            std::vector<uint8_t> send_val;
+            send_val.push_back(workClass->GetId());
+
+            uint16_t send_packet_number = htons(packet_number);
+            uint8_t* bytes = reinterpret_cast<uint8_t*>(&send_packet_number);
+    		for (size_t i = 0; i < 2; ++i) {
+        		send_val.push_back(bytes[i]);
+    		}
+            //std::cout  << packet_number << " " << kImuData[0] << " " << kImuData[4] <<  " " << kImuData[6] << " " << kImuData[7] << " " <<  kImuData[8] << " " << kImuData[9] << '\n';
+            
+            float insert_value;
+            uint32_t value;
+
+            for (int i = 0; i < kImuData.size(); i++) {
+                insert_value = kImuData[i];
+                std::memcpy(&value, &insert_value, sizeof(float));
+                value = ntohl(value);
+                bytes = reinterpret_cast<uint8_t*>(&value);
+
+                for (size_t i = 0; i < sizeof(uint32_t); ++i) {
+                    send_val.push_back(bytes[i]);
+                }
+                
+            }
+
+            udp_client_->Send(send_val);
         }
         rc_usleep(kTimerPrecision);
     }
@@ -94,7 +125,7 @@ void KPIRoverECU::Stop() {
         processingThread_.join();
     }
     std::cout << "destroying drivers" << '\n';
-    tcp_transport_->Destroy();
+    // tcp_transport_->Destroy();
 }
 
 int KPIRoverECU::GetCounter() { return (kTimeStop * kOneSecondMicro) / kTimerPrecision; }

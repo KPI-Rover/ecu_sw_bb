@@ -8,12 +8,14 @@
 #include "TCPTransport.h"
 #include "protocolHandler.h"
 #include "IMUController.h"
+#include "UDPClient.h"
 
 // Constants for timing control
 static constexpr std::uint32_t kTimerPrecision = 100000;   // 100 milliseconds in microsecond (for timer)
 static constexpr std::uint32_t kOneSecondMicro = 1000000;  // 1 s in microseconds
 static constexpr std::uint32_t kOneSecondMilli = 1000;     // 1 s in milliseconds
 static constexpr std::uint32_t kTimeStop = 5;              // 5 seconds
+static constexpr std::uint32_t k16MaxCount = 65535;
 
 class KPIRoverECU {
    public:
@@ -21,7 +23,7 @@ class KPIRoverECU {
     void ProcessingThreadFunction();
     void IMUThreadFucntion(IMUController *workClass);
 
-    KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, IMUController *_imuController);
+    KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, UDPClient *_udpClient, IMUController *_imuController);
     bool Start();
     void Stop();
 
@@ -29,6 +31,7 @@ class KPIRoverECU {
     ProtocolHanlder *protocol_handler_;
     TCPTransport *tcp_transport_;
     IMUController *imu_controller_;
+    UDPClient *udp_client_;
     std::thread timerThread_;
     std::thread processingThread_;
     std::thread imuThread_;
