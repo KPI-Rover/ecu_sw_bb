@@ -35,7 +35,6 @@ int UDPClient::Init() {
 }
 
 bool UDPClient::Send(const std::vector<std::uint8_t> &data) {
-	std::cout << "send" << '\n';
 	if (sockfd_ < 0) {
 		return false;
 	}

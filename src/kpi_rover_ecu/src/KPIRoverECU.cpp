@@ -53,7 +53,6 @@ void KPIRoverECU::IMUThreadFucntion(IMUController* workClass) {
     		for (size_t i = 0; i < 2; ++i) {
         		send_val.push_back(bytes[i]);
     		}
-            //std::cout  << packet_number << " " << kImuData[0] << " " << kImuData[4] <<  " " << kImuData[6] << " " << kImuData[7] << " " <<  kImuData[8] << " " << kImuData[9] << '\n';
             
             float insert_value;
             uint32_t value;
@@ -92,7 +91,7 @@ void KPIRoverECU::TimerThreadFuction(ProtocolHanlder* workClass) {
         } else if (counter_ == 0) {
             // command to stop all motors
             workClass->HandleMessage(kStopVector);
-
+            imu_controller_->SetDisable();
             rc_usleep(kTimeStop * kOneSecondMicro);
         }
     }

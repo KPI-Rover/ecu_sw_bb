@@ -3,6 +3,7 @@
 
 #include <rc/mpu.h>
 
+#include <atomic>
 #include <cstdint>
 #include <vector>
 
@@ -11,6 +12,7 @@ class IMUController {
 	 IMUController();
 	 int Init();
 	 void SetEnable();
+	 void SetDisable();
 	 bool GetEnable();
 	 void Stop();
 	 std::vector<float> GetData();
@@ -24,7 +26,7 @@ class IMUController {
 	 const int kDmpSampleRate = 100;
 	 const int kEnableMagnetometer = 1;
 
-	 bool isStarted_;
+	 std::atomic<bool> isStarted_;
 	 rc_mpu_config_t configuration_;
 	 std::vector<float> actualData_;
 	 rc_mpu_data_t data_;
