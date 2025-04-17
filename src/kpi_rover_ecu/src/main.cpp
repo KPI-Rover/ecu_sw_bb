@@ -13,13 +13,13 @@
 #include <thread>
 #include <vector>
 
+#include "IMUController.h"
 #include "KPIRoverECU.h"
 #include "TCPTransport.h"
+#include "UDPClient.h"
 #include "motorConfig.h"
 #include "motorsController.h"
 #include "protocolHandler.h"
-#include "IMUController.h"
-#include "UDPClient.h"
 
 using std::atomic;
 using std::signal;
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     const char* server_address = "0.0.0.0";
     const int kDefaultPortNum = 5500;
     const char* udp_server_address = "127.0.0.1";
-    const int  kUdpDefaultPortNum = 6000;
+    const int kUdpDefaultPortNum = 6000;
     const int kBase = 10;  // Named constant for base 10
     int server_portnum = kDefaultPortNum;
     int udp_server_portnum = kUdpDefaultPortNum;

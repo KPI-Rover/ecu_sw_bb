@@ -1,5 +1,6 @@
 #include "KPIRoverECU.h"
 
+#include <arpa/inet.h>
 #include <rc/time.h>
 
 #include <csignal>
@@ -9,9 +10,11 @@
 #include <vector>
 
 #include "TCPTransport.h"
+#include "UDPClient.h"
 #include "protocolHandler.h"
 
-KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, UDPClient *_udpClient, IMUController *_imuController)
+KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, UDPClient *_udpClient,
+                         IMUController *_imuController)
     : protocol_handler_(_protocolHandler),
       tcp_transport_(_tcpTransport),
       imu_controller_(_imuController),
@@ -34,7 +37,7 @@ bool KPIRoverECU::Start() {
     return true;
 }
 
-void KPIRoverECU::IMUThreadFucntion(IMUController* workClass) {
+void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
     uint16_t packet_number = 0;
 
     while (runningProcess_) {
@@ -49,34 +52,32 @@ void KPIRoverECU::IMUThreadFucntion(IMUController* workClass) {
             send_val.push_back(workClass->GetId());
 
             uint16_t send_packet_number = htons(packet_number);
-            uint8_t* bytes = reinterpret_cast<uint8_t*>(&send_packet_number);
-    		for (size_t i = 0; i < 2; ++i) {
-        		send_val.push_back(bytes[i]);
-    		}
-            
-            float insert_value;
-            uint32_t value;
+            auto *bytes = reinterpret_cast<uint8_t *>(&send_packet_number);
+            for (size_t i = 0; i < 2; ++i) {
+                send_val.push_back(bytes[i]);
+            }
 
-            for (int i = 0; i < kImuData.size(); i++) {
-                insert_value = kImuData[i];
+            float insert_value = 0;
+            uint32_t value = 0;
+
+            for (const float kImuValue : kImuData) {
+                insert_value = kImuValue;
                 std::memcpy(&value, &insert_value, sizeof(float));
                 value = ntohl(value);
-                bytes = reinterpret_cast<uint8_t*>(&value);
+                bytes = reinterpret_cast<uint8_t *>(&value);
 
-                for (size_t i = 0; i < sizeof(uint32_t); ++i) {
-                    send_val.push_back(bytes[i]);
+                for (size_t j = 0; j < sizeof(uint32_t); ++j) {
+                    send_val.push_back(bytes[j]);
                 }
-                
             }
 
             udp_client_->Send(send_val);
         }
         rc_usleep(kTimerPrecision);
     }
-    
 }
 
-void KPIRoverECU::TimerThreadFuction(ProtocolHanlder* workClass) {
+void KPIRoverECU::TimerThreadFuction(ProtocolHanlder *workClass) {
     const std::vector<uint8_t> kStopVector = workClass->MotorsStopMessage();
 
     while (!runningState_) {
