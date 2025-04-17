@@ -32,6 +32,7 @@ add_executable(unitTests
     test_message_queue.cpp
     test_motor_controller.cpp
     test_pid_regulator.cpp
+    test_imu_controller.cpp
 )
 
 target_link_libraries(unitTests

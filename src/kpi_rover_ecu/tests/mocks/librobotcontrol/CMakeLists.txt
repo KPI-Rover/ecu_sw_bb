@@ -4,6 +4,7 @@ add_library(robotcontrol_mock STATIC
     src/motor.cpp
     src/time.cpp
     src/start_stop.cpp
+    src/imu.cpp
 )
 
 target_include_directories(robotcontrol_mock PUBLIC
