@@ -10,16 +10,18 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <string>
 #include <vector>
 
-UDPClient::UDPClient(const char *ip_address, int port)
-    : sockfd_(-1), client_portnum_(port), server_address_(new char[strlen(ip_address) + 1]) {
-    strncpy(server_address_, ip_address, strlen(ip_address) + 1);
-}
+UDPClient::UDPClient()
+    : sockfd_(-1), server_portnum_(0), server_address_({0}) {}
 
-void UDPClient::Start() {}
+int UDPClient::Init(std::string ip_address, int port) {
+    std::strncpy(server_address_, ip_address.c_str(), INET_ADDRSTRLEN);
+    server_address_[INET_ADDRSTRLEN - 1] = '\0';
 
-int UDPClient::Init() {
+    server_portnum_ = port;
+
     std::cout << "initialize socket" << '\n';
     sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd_ == -1) {
@@ -30,7 +32,7 @@ int UDPClient::Init() {
     memset(&serverStruct_, 0, sizeof(serverStruct_));
     serverStruct_.sin_family = AF_INET;
     serverStruct_.sin_addr.s_addr = inet_addr(server_address_);  // Server IP address (localhost)
-    serverStruct_.sin_port = htons(client_portnum_);
+    serverStruct_.sin_port = htons(server_portnum_);
 
     return 0;
 }

@@ -5,31 +5,31 @@
 #include <netinet/in.h>
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
-#include "ITransport.h"
+#include "IClient.h"
 
-class UDPClient : public ITransport {
+class UDPClient : public IClient {
    public:
-    UDPClient(const char* ip_address, int port);
+    UDPClient();
 
     UDPClient(const UDPClient&) = delete;
     UDPClient& operator=(const UDPClient&) = delete;
     UDPClient(UDPClient&&) = delete;
     UDPClient& operator=(UDPClient&&) = delete;
 
-    int Init() override;
+    int Init(std::string ip_address, int port) override;
     bool Send(const std::vector<std::uint8_t>& data) override;
     bool Receive(std::vector<std::uint8_t>& data) override;
-    void Start() override;
     void Destroy() override;
     ~UDPClient() override;
 
    private:
     int sockfd_;
     sockaddr_in serverStruct_;
-    char* server_address_;
-    int client_portnum_;
+    char server_address_[INET_ADDRSTRLEN];
+    int server_portnum_;
 };
 
 #endif

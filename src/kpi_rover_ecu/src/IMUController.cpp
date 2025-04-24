@@ -28,8 +28,6 @@ void IMUController::SetEnable() { isStarted_ = true; }
 
 void IMUController::SetDisable() { isStarted_ = false; }
 
-bool IMUController::GetEnable() { return isStarted_; }
-
 std::vector<float> IMUController::GetData() {
     if (!isStarted_) {
         return {};

@@ -1,6 +1,7 @@
 #ifndef TCPTRANSPORT_H
 #define TCPTRANSPORT_H
 
+#include <arpa/inet.h>
 #include <atomic>
 #include <cstdint>
 #include <cstring>
@@ -28,9 +29,14 @@ class TCPTransport : public ITransport {
     int Init() override;
     void Destroy() override;
 
+    std::string GetSourceIp();
+    int GetSourcePort();
+
    private:
     int sockfd_, client_sockfd_;
     char* server_address_;
+    char source_address_[INET_ADDRSTRLEN];
+    int source_port_;
     int server_portnum_;
     std::atomic<bool> running_;
     std::thread acceptThread_;

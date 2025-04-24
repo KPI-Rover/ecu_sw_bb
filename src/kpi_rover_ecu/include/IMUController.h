@@ -15,7 +15,6 @@ class IMUController {
     int Init();
     void SetEnable();
     void SetDisable();
-    bool GetEnable();
     void Stop();
     std::vector<float> GetData();
     uint8_t GetId();

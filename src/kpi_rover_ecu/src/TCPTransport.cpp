@@ -20,7 +20,8 @@ TCPTransport::TCPTransport(const char *ip_address, int port)
       client_sockfd_(-1),
       server_portnum_(port),
       running_(true),
-      server_address_(new char[strlen(ip_address) + 1]) {
+      server_address_(new char[strlen(ip_address) + 1]),
+      source_port_(-1) {
     strncpy(server_address_, ip_address, strlen(ip_address) + 1);
 }
 
@@ -38,6 +39,7 @@ TCPTransport::~TCPTransport() {
 int TCPTransport::Init() {
     struct sockaddr_in serv_addr = {};
     int reuseaddr = 1;
+    source_address_[0] = '\0';
 
     sockfd_ = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -73,11 +75,16 @@ int TCPTransport::Init() {
 
 void TCPTransport::Start() {
     acceptThread_ = std::thread([this]() {
+        struct sockaddr_in client_addr;
+        socklen_t client_add_size = sizeof(client_addr);
+
         while (running_) {
             std::cout << "Waiting for connection..." << '\n';
-            client_sockfd_ = accept(sockfd_, nullptr, nullptr);
+            client_sockfd_ = accept(sockfd_, reinterpret_cast<sockaddr*>(&client_addr), &client_add_size);
             if (client_sockfd_ >= 0) {
-                std::cout << "Client connected." << '\n';
+                inet_ntop(AF_INET, &client_addr.sin_addr, source_address_, INET_ADDRSTRLEN);
+                source_port_ = static_cast<int>(ntohs(client_addr.sin_port));
+                //std::cout << "Client connected " << source_address_ << ":" << ntohs(client_addr.sin_port) << '\n';
                 while (true) {  // Use true instead of 1
                     std::uint8_t buffer[kBufferSize];
                     const ssize_t kBytesReceived = recv(client_sockfd_, buffer, sizeof(buffer), 0);
@@ -104,6 +111,10 @@ bool TCPTransport::Send(const std::vector<std::uint8_t> &data) {
 }
 
 bool TCPTransport::Receive(std::vector<std::uint8_t> &data) { return messageQueue_.Pop(data, kTimeoutMs); }
+
+std::string TCPTransport::GetSourceIp() { return std::string(source_address_); }
+
+int TCPTransport::GetSourcePort() { return source_port_; }
 
 void TCPTransport::Destroy() {
     running_ = false;

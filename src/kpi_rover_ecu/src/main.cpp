@@ -86,9 +86,9 @@ int main(int argc, char* argv[]) {
     }
 
     TCPTransport tcp_transport(server_address, server_portnum);
-    UDPClient udp_client(udp_server_address, udp_server_portnum);
+    UDPClient udp_client;
 
-    if (tcp_transport.Init() == -1 || udp_client.Init() == -1) {
+    if (tcp_transport.Init() == -1) {
         std::cout << "[ERROR] Error creating socket" << '\n';
         tcp_transport.Destroy();
         udp_client.Destroy();

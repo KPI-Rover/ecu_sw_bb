@@ -40,14 +40,25 @@ bool KPIRoverECU::Start() {
 void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
     uint16_t packet_number = 0;
 
+    std::string destination_address = "";
+    int destination_port = 0;
+
+    while (destination_address.empty()) {
+        destination_address = tcp_transport_->GetSourceIp();
+        destination_port = tcp_transport_->GetSourcePort();
+    }
+
+    udp_client_->Init(destination_address, destination_port);
+
     while (runningProcess_) {
-        if (workClass->GetEnable()) {
+        const std::vector<float> kImuData = workClass->GetData();
+        if (!kImuData.empty()) {
             if (packet_number == k16MaxCount) {
                 packet_number = 0;
             }
             packet_number += 1;
 
-            const std::vector<float> kImuData = workClass->GetData();
+            //std::cout << "Client connected " << tcp_transport_->GetSourceIp() << ":" << tcp_transport_->GetSourcePort() << '!' << '\n';
             std::vector<uint8_t> send_val;
             send_val.push_back(workClass->GetId());
 
@@ -102,9 +113,7 @@ void KPIRoverECU::ProcessingThreadFunction() {
     while (runningProcess_) {
         std::vector<uint8_t> message;
         if (tcp_transport_->Receive(message)) {
-            if (!imu_controller_->GetEnable()) {
-                imu_controller_->SetEnable();
-            }
+            imu_controller_->SetEnable();
 
             counter_.store(GetCounter());
             const std::vector<uint8_t> kReturnMessage = protocol_handler_->HandleMessage(message);
