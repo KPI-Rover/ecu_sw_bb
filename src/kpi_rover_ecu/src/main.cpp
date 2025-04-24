@@ -32,15 +32,12 @@ void InterruptSignalHandler(int signal);
 int main(int argc, char* argv[]) {
     const char* server_address = "0.0.0.0";
     const int kDefaultPortNum = 5500;
-    const char* udp_server_address = "127.0.0.1";
-    const int kUdpDefaultPortNum = 6000;
     const int kBase = 10;  // Named constant for base 10
     int server_portnum = kDefaultPortNum;
-    int udp_server_portnum = kUdpDefaultPortNum;
 
     // Command-line options
     int opt = 0;
-    while ((opt = getopt(argc, argv, "a:p:i:c:")) != -1) {
+    while ((opt = getopt(argc, argv, "a:p:")) != -1) {
         switch (opt) {
             case 'a':
                 server_address = optarg;
@@ -48,18 +45,10 @@ int main(int argc, char* argv[]) {
             case 'p':
                 server_portnum = strtol(optarg, nullptr, kBase);
                 break;
-            case 'i':
-                udp_server_address = optarg;
-                break;
-            case 'c':
-                udp_server_portnum = strtol(optarg, nullptr, kBase);
-                break;
             default:
                 std::cout << "Usage: " << argv[0] << '\n';
                 std::cout << " [-a server_address] " << '\n';
                 std::cout << " [-p server_portnum]" << '\n';
-                std::cout << " [-i udp_server_address] " << '\n';
-                std::cout << " [-c udp_server_portnum]" << '\n';
                 return EXIT_FAILURE;
         }
     }
