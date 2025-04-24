@@ -4,6 +4,7 @@
 #include <rc/mpu.h>
 
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 

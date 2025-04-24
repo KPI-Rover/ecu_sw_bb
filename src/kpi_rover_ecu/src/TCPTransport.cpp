@@ -8,8 +8,8 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <cstring>
 #include <iostream>
+#include <string>
 #include <vector>
 
 constexpr std::size_t kBufferSize = 1024;
@@ -75,16 +75,15 @@ int TCPTransport::Init() {
 
 void TCPTransport::Start() {
     acceptThread_ = std::thread([this]() {
-        struct sockaddr_in client_addr;
+        struct sockaddr_in client_addr {};
         socklen_t client_add_size = sizeof(client_addr);
 
         while (running_) {
             std::cout << "Waiting for connection..." << '\n';
-            client_sockfd_ = accept(sockfd_, reinterpret_cast<sockaddr*>(&client_addr), &client_add_size);
+            client_sockfd_ = accept(sockfd_, reinterpret_cast<sockaddr *>(&client_addr), &client_add_size);
             if (client_sockfd_ >= 0) {
                 inet_ntop(AF_INET, &client_addr.sin_addr, source_address_, INET_ADDRSTRLEN);
                 source_port_ = static_cast<int>(ntohs(client_addr.sin_port));
-                //std::cout << "Client connected " << source_address_ << ":" << ntohs(client_addr.sin_port) << '\n';
                 while (true) {  // Use true instead of 1
                     std::uint8_t buffer[kBufferSize];
                     const ssize_t kBytesReceived = recv(client_sockfd_, buffer, sizeof(buffer), 0);

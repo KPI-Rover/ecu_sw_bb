@@ -5,8 +5,8 @@
 
 #include <csignal>
 #include <cstdint>
-#include <cstring>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "TCPTransport.h"
@@ -40,7 +40,7 @@ bool KPIRoverECU::Start() {
 void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
     uint16_t packet_number = 0;
 
-    std::string destination_address = "";
+    std::string destination_address;
     int destination_port = 0;
 
     while (destination_address.empty()) {
@@ -58,7 +58,6 @@ void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
             }
             packet_number += 1;
 
-            //std::cout << "Client connected " << tcp_transport_->GetSourceIp() << ":" << tcp_transport_->GetSourcePort() << '!' << '\n';
             std::vector<uint8_t> send_val;
             send_val.push_back(workClass->GetId());
 

@@ -13,8 +13,7 @@
 #include <string>
 #include <vector>
 
-UDPClient::UDPClient()
-    : sockfd_(-1), server_portnum_(0), server_address_({0}) {}
+UDPClient::UDPClient() : sockfd_(-1), server_portnum_(0), server_address_{} {}
 
 int UDPClient::Init(std::string ip_address, int port) {
     std::strncpy(server_address_, ip_address.c_str(), INET_ADDRSTRLEN);
@@ -54,5 +53,4 @@ UDPClient::~UDPClient() {
     shutdown(sockfd_, SHUT_WR);
 
     close(sockfd_);
-    delete[] server_address_;
 }

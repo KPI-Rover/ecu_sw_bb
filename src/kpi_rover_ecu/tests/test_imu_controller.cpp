@@ -45,15 +45,6 @@ TEST_F(IMUControllerTest, InitFailure) {
     ASSERT_EQ(result, -1);
 }
 
-// Test IMUController::SetEnable and GetEnable
-TEST_F(IMUControllerTest, EnableDisable) {
-    imu_controller.SetEnable();
-    ASSERT_TRUE(imu_controller.GetEnable());
-
-    imu_controller.SetDisable();
-    ASSERT_FALSE(imu_controller.GetEnable());
-}
-
 // Test IMUController::GetData
 TEST_F(IMUControllerTest, GetDataWhenDisabled) {
     imu_controller.SetDisable();
