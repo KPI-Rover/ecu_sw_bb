@@ -8,7 +8,11 @@ if [ -z "$BBB_HOST" ]; then
 fi
 
 # Deploy the software using scp
+BBB_HOST_ROOT="${BBB_HOST/debian/root}"
+
 scp build/Target/src/kpi_rover_ecu/kpi_rover_ecu "$BBB_HOST":~
+scp system/kpi_rover_ecu.service "$BBB_HOST_ROOT":/etc/systemd/system
+ssh "$BBB_HOST_ROOT" 'systemctl daemon-reload'
 
 # Check if scp was successful
 if [ $? -eq 0 ]; then
