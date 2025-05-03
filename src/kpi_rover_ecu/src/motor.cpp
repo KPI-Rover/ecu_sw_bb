@@ -89,7 +89,7 @@ int Motor::GetEncoderCounter() {
     rc_encoder_write(motorNumber_, 0);
 
     MotorSet(setpointRpm_ + kPidOutput);
-    return kEncoderTicks;
+    return pid_encoder_ticks;
 }
 
 double Motor::GetDC(int entryRPM) { return static_cast<double>(entryRPM) / kMaxRpm; }
