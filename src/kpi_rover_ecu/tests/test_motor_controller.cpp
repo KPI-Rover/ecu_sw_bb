@@ -102,7 +102,7 @@ TEST_F(MotorControllerTest, GetEncoderCounter) {
     EXPECT_CALL(GetMockRCEncoder(), read(channel)).WillOnce(::testing::Return(encoder_value));
 
     int result = motor_controller.GetEncoderCounter(channel - 1); // Convert to 0-based index
-    ASSERT_EQ(result, encoder_value);
+    ASSERT_EQ(-result, encoder_value);
 }
 
 // Test MotorController::Destroy

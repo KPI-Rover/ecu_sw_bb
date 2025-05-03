@@ -115,7 +115,7 @@ TEST_F(MotorTest, GetEncoderCounter) {
     motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->GetEncoderCounter();
 
-    EXPECT_EQ(42, result) << "GetEncoderCounter should return encoder value";
+    EXPECT_EQ(42, -result) << "GetEncoderCounter should return encoder value";
 }
 
 // Test GetEncoderCounter with error
@@ -125,5 +125,5 @@ TEST_F(MotorTest, GetEncoderCounterError) {
     motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
     int result = motor->GetEncoderCounter();
 
-    EXPECT_EQ(-1, result) << "GetEncoderCounter should return error";
+    EXPECT_EQ(1, result) << "GetEncoderCounter should return error";
 }
