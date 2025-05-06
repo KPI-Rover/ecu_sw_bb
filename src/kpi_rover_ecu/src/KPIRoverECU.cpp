@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <rc/time.h>
+#include <stddef.h>
 
 #include <csignal>
 #include <cstdint>
@@ -9,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "IMUController.h"
 #include "TCPTransport.h"
 #include "UDPClient.h"
 #include "protocolHandler.h"
