@@ -44,8 +44,8 @@ void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
     int destination_port = 0;
 
     while (destination_address.empty()) {
-        destination_address = tcp_transport_->GetSourceIp();
-        destination_port = tcp_transport_->GetSourcePort();
+        destination_address = tcp_transport_->GetClientIp();
+        destination_port = tcp_transport_->GetClientPort();
     }
 
     udp_client_->Init(destination_address, destination_port);

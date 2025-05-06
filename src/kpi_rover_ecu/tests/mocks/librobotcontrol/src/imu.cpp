@@ -25,17 +25,16 @@ int rc_mpu_initialize_dmp(rc_mpu_data_t* data, rc_mpu_config_t config) {
 
 int rc_mpu_power_off(void) {
     GetMockRCMPU().power_off();
-    return 0;  // Возвращаем успешный код
+    return 0;
 }
 
 int rc_mpu_read_accel(rc_mpu_data_t* data) { return GetMockRCMPU().read_accel(data); }
 
 int rc_mpu_read_gyro(rc_mpu_data_t* data) { return GetMockRCMPU().read_gyro(data); }
 
-// Реализация rc_mpu_default_config
 rc_mpu_config_t rc_mpu_default_config(void) {
     rc_mpu_config_t config = {};
-    config.i2c_bus = 2;  // Настройка I2C шины
+    config.i2c_bus = 2;
     config.gpio_interrupt_pin_chip = 3;
     config.gpio_interrupt_pin = 21;
     config.dmp_sample_rate = 100;

@@ -30,8 +30,8 @@ class TCPTransport : public ITransport {
     int Init() override;
     void Destroy() override;
 
-    std::string GetSourceIp();
-    int GetSourcePort();
+    std::string GetClientIp();
+    int GetClientPort();
 
    private:
     int sockfd_, client_sockfd_;

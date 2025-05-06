@@ -111,9 +111,9 @@ bool TCPTransport::Send(const std::vector<std::uint8_t> &data) {
 
 bool TCPTransport::Receive(std::vector<std::uint8_t> &data) { return messageQueue_.Pop(data, kTimeoutMs); }
 
-std::string TCPTransport::GetSourceIp() { return std::string(source_address_); }
+std::string TCPTransport::GetClientIp() { return std::string(source_address_); }
 
-int TCPTransport::GetSourcePort() { return source_port_; }
+int TCPTransport::GetClientPort() { return source_port_; }
 
 void TCPTransport::Destroy() {
     running_ = false;

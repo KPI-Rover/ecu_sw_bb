@@ -55,16 +55,13 @@ TEST_F(IMUControllerTest, GetDataWhenDisabled) {
 TEST_F(IMUControllerTest, GetDataWhenEnabled) {
     imu_controller.SetEnable();
 
-    // Настройка моков для чтения данных акселерометра, гироскопа, кватернионов
     EXPECT_CALL(GetMockRCMPU(), read_accel(::testing::_)).WillOnce(::testing::Return(0));
     EXPECT_CALL(GetMockRCMPU(), read_gyro(::testing::_)).WillOnce(::testing::Return(0));
 
-    // Получение данных
     std::vector<float> data = imu_controller.GetData();
 
-    // Проверка того, что данные возвращены
-    ASSERT_EQ(data.size(), 10);  // Убедимся, что размер данных соответствует ожидаемому
-    SUCCEED();  // Успешное завершение теста
+    ASSERT_EQ(data.size(), 10);  
+    SUCCEED();  
 }
 
 // Test IMUController::Stop
