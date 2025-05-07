@@ -1,0 +1,16 @@
+[Unit]
+Description=KPI Rover ECU Service
+After=network.target
+
+[Service]
+ExecStart=/home/debian/kpi_rover_ecu -a 0.0.0.0 -p 6000
+WorkingDirectory=/home/debian
+Restart=always
+User=root
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+PermissionsStartOnly=true
+ExecStartPre=/bin/sleep 2
+
+[Install]
+WantedBy=multi-user.target
