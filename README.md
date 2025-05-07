@@ -53,9 +53,22 @@ password: temppwd
 ```
 
 ### Run program
+
+Run directly
 ```
 sudo ./kpi_rover_ecu -a 0.0.0.0 -p 6000
 ```
+
+Run like systemd service
+```
+sudo systemctl start kpi_rover_ecu.service
+```
+
+Stop systemd service
+```
+sudo systemctl stop kpi_rover_ecu.service
+```
+
 ## Code Style Check and Static Code Analysis
 
 ### Importance
