@@ -47,10 +47,15 @@ bool UDPClient::Send(const std::vector<std::uint8_t> &data) {
 
 bool UDPClient::Receive(std::vector<std::uint8_t> &data) { return false; }
 
-void UDPClient::Destroy() {}
-
-UDPClient::~UDPClient() {
+void UDPClient::Destroy() {
     shutdown(sockfd_, SHUT_WR);
 
     close(sockfd_);
+    std::cout << "joining udp client socket ..." << '\n';
 }
+
+// UDPClient::~UDPClient() {
+//     shutdown(sockfd_, SHUT_WR);
+
+//     close(sockfd_);
+// }

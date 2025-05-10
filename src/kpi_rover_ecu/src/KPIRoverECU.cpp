@@ -31,7 +31,7 @@ bool KPIRoverECU::Start() {
     processingThread_ = std::thread([this] { ProcessingThreadFunction(); });
     imuThread_ = std::thread([this] { IMUThreadFucntion(this->imu_controller_); });
 
-    if (!timerThread_.joinable() || !processingThread_.joinable()) {
+    if (!timerThread_.joinable() || !processingThread_.joinable() || !imuThread_.joinable() ) {
         std::cout << "Error creating thread" << '\n';
         return false;
     }
@@ -45,45 +45,45 @@ void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
     std::string destination_address;
     int destination_port = 0;
 
-    while (destination_address.empty()) {
-        destination_address = tcp_transport_->GetClientIp();
-        destination_port = tcp_transport_->GetClientPort();
-    }
-
-    udp_client_->Init(destination_address, destination_port);
-
     while (runningProcess_) {
-        const std::vector<float> kImuData = workClass->GetData();
-        if (!kImuData.empty()) {
-            if (packet_number == k16MaxCount) {
-                packet_number = 0;
-            }
-            packet_number += 1;
+        if (destination_address.empty()) {
+            destination_address = tcp_transport_->GetClientIp();
+            destination_port = tcp_transport_->GetClientPort();
+            if (!destination_address.empty()) { udp_client_->Init(destination_address, destination_port); }
 
-            std::vector<uint8_t> send_val;
-            send_val.push_back(workClass->GetId());
-
-            uint16_t send_packet_number = htons(packet_number);
-            auto *bytes = reinterpret_cast<uint8_t *>(&send_packet_number);
-            for (size_t i = 0; i < 2; ++i) {
-                send_val.push_back(bytes[i]);
-            }
-
-            float insert_value = 0;
-            uint32_t value = 0;
-
-            for (const float kImuValue : kImuData) {
-                insert_value = kImuValue;
-                std::memcpy(&value, &insert_value, sizeof(float));
-                value = ntohl(value);
-                bytes = reinterpret_cast<uint8_t *>(&value);
-
-                for (size_t j = 0; j < sizeof(uint32_t); ++j) {
-                    send_val.push_back(bytes[j]);
+        } else {
+            const std::vector<float> kImuData = workClass->GetData();
+            if (!kImuData.empty()) {
+                if (packet_number == k16MaxCount) {
+                    packet_number = 0;
                 }
-            }
+                packet_number += 1;
 
-            udp_client_->Send(send_val);
+                std::vector<uint8_t> send_val;
+                send_val.push_back(workClass->GetId());
+
+                uint16_t send_packet_number = htons(packet_number);
+                auto *bytes = reinterpret_cast<uint8_t *>(&send_packet_number);
+                for (size_t i = 0; i < 2; ++i) {
+                    send_val.push_back(bytes[i]);
+                }
+
+                float insert_value = 0;
+                uint32_t value = 0;
+
+                for (const float kImuValue : kImuData) {
+                    insert_value = kImuValue;
+                    std::memcpy(&value, &insert_value, sizeof(float));
+                    value = ntohl(value);
+                    bytes = reinterpret_cast<uint8_t *>(&value);
+
+                    for (size_t j = 0; j < sizeof(uint32_t); ++j) {
+                        send_val.push_back(bytes[j]);
+                    }
+                }
+                udp_client_->Send(send_val);
+                
+            }
         }
         rc_usleep(kTimerPrecision);
     }
@@ -134,6 +134,10 @@ void KPIRoverECU::Stop() {
     if (processingThread_.joinable()) {
         processingThread_.join();
     }
+    if (imuThread_.joinable()) {
+        imuThread_.join();
+    }
+
     std::cout << "destroying drivers" << '\n';
     // tcp_transport_->Destroy();
 }

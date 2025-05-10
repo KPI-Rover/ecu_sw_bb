@@ -14,7 +14,7 @@ class ITransport {
     virtual int Init() = 0;
     virtual void Start() = 0;
     virtual void Destroy() = 0;
-    virtual ~ITransport() = default;
+    // virtual ~ITransport() = default;
 
     ITransport(const ITransport&) = delete;
     ITransport& operator=(const ITransport&) = delete;
