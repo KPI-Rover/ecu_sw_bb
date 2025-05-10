@@ -23,7 +23,7 @@ class UDPClient : public IClient {
     bool Send(const std::vector<std::uint8_t>& data) override;
     bool Receive(std::vector<std::uint8_t>& data) override;
     void Destroy() override;
-    ~UDPClient() override;
+    // ~UDPClient() override;
 
    private:
     int sockfd_;

@@ -22,7 +22,7 @@ class TCPTransport : public ITransport {
     TCPTransport& operator=(const TCPTransport&) = delete;
     TCPTransport(TCPTransport&&) = delete;
     TCPTransport& operator=(TCPTransport&&) = delete;
-    ~TCPTransport() override;
+    // ~TCPTransport() override;
 
     bool Send(const std::vector<std::uint8_t>& data) override;
     bool Receive(std::vector<std::uint8_t>& data) override;

@@ -14,7 +14,7 @@ class IClient {
     virtual bool Receive(std::vector<std::uint8_t>& data) = 0;
     virtual int Init(std::string ip_address, int port) = 0;
     virtual void Destroy() = 0;
-    virtual ~IClient() = default;
+    // virtual ~IClient() = default;
 
     IClient(const IClient&) = delete;
     IClient& operator=(const IClient&) = delete;
