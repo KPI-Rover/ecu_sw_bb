@@ -109,8 +109,6 @@ int main(int argc, char* argv[]) {
 
     kpi_rover_ecu.Stop();
     motors_processor.Destroy();
-    tcp_transport.Destroy();
-    udp_client.Destroy();
 
     return 0;
 }

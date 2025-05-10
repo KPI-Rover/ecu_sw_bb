@@ -26,16 +26,16 @@ TCPTransport::TCPTransport(const char *ip_address, int port)
     strncpy(server_address_, ip_address, strlen(ip_address) + 1);
 }
 
-// TCPTransport::~TCPTransport() {
-//     running_ = false;
-//     shutdown(sockfd_, SHUT_RDWR);
-//     std::cout << "joining thread ... " << '\n';
-//     acceptThread_.join();
-//     std::cout << "closing socket" << '\n';
-//     close(client_sockfd_);
-//     close(sockfd_);
-//     delete[] server_address_;
-// }
+TCPTransport::~TCPTransport() {
+    running_ = false;
+    shutdown(sockfd_, SHUT_RDWR);
+    std::cout << "joining thread ... " << '\n';
+    acceptThread_.join();
+    std::cout << "closing socket" << '\n';
+    close(client_sockfd_);
+    close(sockfd_);
+    delete[] server_address_;
+}
 
 int TCPTransport::Init() {
     struct sockaddr_in serv_addr = {};

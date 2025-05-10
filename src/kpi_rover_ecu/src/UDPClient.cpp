@@ -54,8 +54,9 @@ void UDPClient::Destroy() {
     std::cout << "joining udp client socket ..." << '\n';
 }
 
-// UDPClient::~UDPClient() {
-//     shutdown(sockfd_, SHUT_WR);
+UDPClient::~UDPClient() {
+    shutdown(sockfd_, SHUT_WR);
 
-//     close(sockfd_);
-// }
+    close(sockfd_);
+    std::cout << "joining udp client socket ..." << '\n';
+}

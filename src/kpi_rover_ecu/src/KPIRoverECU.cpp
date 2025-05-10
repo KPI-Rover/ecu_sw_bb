@@ -31,7 +31,7 @@ bool KPIRoverECU::Start() {
     processingThread_ = std::thread([this] { ProcessingThreadFunction(); });
     imuThread_ = std::thread([this] { IMUThreadFucntion(this->imu_controller_); });
 
-    if (!timerThread_.joinable() || !processingThread_.joinable() || !imuThread_.joinable() ) {
+    if (!timerThread_.joinable() || !processingThread_.joinable() || !imuThread_.joinable()) {
         std::cout << "Error creating thread" << '\n';
         return false;
     }
@@ -49,7 +49,9 @@ void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
         if (destination_address.empty()) {
             destination_address = tcp_transport_->GetClientIp();
             destination_port = tcp_transport_->GetClientPort();
-            if (!destination_address.empty()) { udp_client_->Init(destination_address, destination_port); }
+            if (!destination_address.empty()) {
+                udp_client_->Init(destination_address, destination_port);
+            }
 
         } else {
             const std::vector<float> kImuData = workClass->GetData();
@@ -82,7 +84,6 @@ void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
                     }
                 }
                 udp_client_->Send(send_val);
-                
             }
         }
         rc_usleep(kTimerPrecision);
