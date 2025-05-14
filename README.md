@@ -196,6 +196,34 @@ Robot Control library Version:
 1.0.5
 ```
 
+#### Provide device calibration
+You need to calibrate threee devices: gyroscope, accelerometer, magnetometer. You can do this using librobotcontrol utils.
+To calibrate devices succesfully you need to folow instructions in CLI.
+
+Accelerometer calibration  (do in every 6-8 month):
+```
+rc_calibrate_accel
+```
+
+Gyroscope calibration (do in every 6-8 month, with accelerometer):
+```
+rc_calibrate_gyro
+```
+
+Magnetometer calibration (do every time you bring robot to new place):
+```
+rc_calibrate_mag
+```
+
+After calibration special .cal files will store in /var/lib/robotcontrol. 
+If you want to to reset calibration results, delete this files.
+```
+rm /var/lib/robotcontrol/accel.cal # Delete accelerometer calibration result
+rm /var/lib/robotcontrol/gyro.cal # Delete gyroscope calibration result
+rm /var/lib/robotcontrol/mag.cal # Delete magnetometer calibration result
+```
+
+
 #### Enable Background Services
 ```
 sudo systemctl enable rc_battery_monitor
