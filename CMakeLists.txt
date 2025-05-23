@@ -4,6 +4,7 @@ project(kpi_rover_ecu)
 if(BUILD_VARIANT STREQUAL "Target")
     option(BUILD_LIBROBOT_CONTROL "Build librobotcontrol using original Makefile" ON)
     add_subdirectory(external/librobotcontrol)
+    add_subdirectory(external/glog)
     add_subdirectory(src/kpi_rover_ecu)
 endif()
 
