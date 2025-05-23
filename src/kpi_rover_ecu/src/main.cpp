@@ -3,6 +3,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <glog/logging.h>
 
 #include <chrono>
 #include <csignal>
@@ -17,6 +18,7 @@
 #include "KPIRoverECU.h"
 #include "TCPTransport.h"
 #include "UDPClient.h"
+#include "loggingIncludes.h"
 #include "motorConfig.h"
 #include "motorsController.h"
 #include "protocolHandler.h"
@@ -34,10 +36,11 @@ int main(int argc, char* argv[]) {
     const int kDefaultPortNum = 5500;
     const int kBase = 10;  // Named constant for base 10
     int server_portnum = kDefaultPortNum;
+    int log_level = 1;
 
     // Command-line options
     int opt = 0;
-    while ((opt = getopt(argc, argv, "a:p:")) != -1) {
+    while ((opt = getopt(argc, argv, "a:p:l:")) != -1) {
         switch (opt) {
             case 'a':
                 server_address = optarg;
@@ -45,14 +48,30 @@ int main(int argc, char* argv[]) {
             case 'p':
                 server_portnum = strtol(optarg, nullptr, kBase);
                 break;
+            case 'l':
+                log_level = strtol(optarg, nullptr, kBase);
+                break;
             default:
                 std::cout << "Usage: " << argv[0] << '\n';
                 std::cout << " [-a server_address] " << '\n';
                 std::cout << " [-p server_portnum]" << '\n';
+                std::cout << " [-l log level]" << '\n';
                 return EXIT_FAILURE;
         }
     }
     // sem_init(&stopProgramSem, 0, 0);
+    /* Glog initializing */
+    google::InitGoogleLogging(argv[0]);
+    if (log_level == 0) {
+        FLAGS_stderrthreshold = 0;
+        FLAGS_v = 1;
+    } else if (log_level >= 1 && log_level <= 4) {
+        FLAGS_stderrthreshold = log_level - 1;
+    } else {
+        FLAGS_stderrthreshold = 0;
+    }
+    FLAGS_log_dir = "./log";
+    LOG_INFO << "Logger was set up";
 
     MotorController motors_processor;
     const uint8_t kMotorNumber = 4;
