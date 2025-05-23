@@ -1,3 +1,6 @@
 [submodule "external/librobotcontrol"]
 	path = external/librobotcontrol
 	url = git@github.com:KPI-Rover/external_librobotcontrol.git
+[submodule "external/glog"]
+	path = external/glog
+	url = https://github.com/google/glog.git
