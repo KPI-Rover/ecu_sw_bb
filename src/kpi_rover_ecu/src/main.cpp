@@ -52,10 +52,10 @@ int main(int argc, char* argv[]) {
                 log_level = strtol(optarg, nullptr, kBase);
                 break;
             default:
-                std::cout << "Usage: " << argv[0] << '\n';
-                std::cout << " [-a server_address] " << '\n';
-                std::cout << " [-p server_portnum]" << '\n';
-                std::cout << " [-l log level]" << '\n';
+                std::cout << "Usage: " << argv[0];
+                std::cout << " [-a server_address] ";
+                std::cout << " [-p server_portnum]";
+                std::cout << " [-l log level]";
                 return EXIT_FAILURE;
         }
     }
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
         FLAGS_stderrthreshold = 0;
     }
     FLAGS_log_dir = "./log";
-    LOG_INFO << "Logger was set up";
+    LOG_INFO << "Logger was set up." << "Directory to log: " << FLAGS_log_dir;
 
     MotorController motors_processor;
     const uint8_t kMotorNumber = 4;
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     IMUController imu_controller;
 
     if (imu_controller.Init() == -1) {
-        std::cout << "[ERROR] Error initializing IMU controller" << '\n';
+        LOG_ERROR << "Error initializing IMU controller";
         imu_controller.Stop();
         return 1;
     }
@@ -97,28 +97,28 @@ int main(int argc, char* argv[]) {
     UDPClient udp_client;
 
     if (tcp_transport.Init() == -1) {
-        std::cout << "[ERROR] Error creating socket" << '\n';
+        LOG_ERROR << "Error creating socket";
         tcp_transport.Destroy();
         udp_client.Destroy();
         return 1;
     }
 
-    std::cout << "start ..." << '\n';
+    LOG_INFO << "start ...";
 
     KPIRoverECU kpi_rover_ecu(&protocol_handler, &tcp_transport, &udp_client, &imu_controller);
 
     if (!kpi_rover_ecu.Start()) {
-        std::cout << "Error In intitalizing main class" << '\n';
+        LOG_ERROR << "Error In intitalizing main class";
         return 1;
     }
 
     if (std::signal(SIGINT, InterruptSignalHandler) == SIG_ERR) {
-        std::cerr << "Error: Unable to set signal handler for SIGINT" << '\n';
+        LOG_ERROR << "Unable to set signal handler for SIGINT";
         return EXIT_FAILURE;
     }
 
     if (std::signal(SIGTERM, InterruptSignalHandler) == SIG_ERR) {
-        std::cerr << "Error: Unable to set signal handler for SIGTERM" << '\n';
+        LOG_ERROR << "Unable to set signal handler for SIGTERM";
         return EXIT_FAILURE;
     }
 
