@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+#include "loggingIncludes.h"
+
 constexpr std::size_t kBufferSize = 1024;
 constexpr int kTimeoutMs = 50;
 
@@ -29,9 +31,9 @@ TCPTransport::TCPTransport(const char *ip_address, int port)
 TCPTransport::~TCPTransport() {
     running_ = false;
     shutdown(sockfd_, SHUT_RDWR);
-    std::cout << "joining thread ... " << '\n';
+    LOG_INFO << "joining thread ... ";
     acceptThread_.join();
-    std::cout << "closing socket" << '\n';
+    LOG_INFO << "closing socket";
     close(client_sockfd_);
     close(sockfd_);
     delete[] server_address_;
@@ -43,14 +45,16 @@ int TCPTransport::Init() {
     source_address_[0] = '\0';
 
     sockfd_ = socket(AF_INET, SOCK_STREAM, 0);
+    
 
     if (sockfd_ < 0) {
-        perror("[ERROR] Socket()");
+        LOG_ERROR << "Socket()";
         return -1;
     }
+    LOG_DEBUG << "Created socket";
 
     if (setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(int)) != 0) {
-        perror("[ERROR] setsockopt()");
+        LOG_ERROR << "setsockopt()";
         return -1;
     }
 
@@ -58,18 +62,21 @@ int TCPTransport::Init() {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr(server_address_);
     serv_addr.sin_port = htons(server_portnum_);
+    LOG_DEBUG << "Set socket parameters";
 
     if (bind(sockfd_, reinterpret_cast<struct sockaddr *>(&serv_addr), sizeof(serv_addr)) != 0) {
-        perror("[ERROR] bind()");
+        LOG_ERROR << "bind()";
         return -1;
     }
+    LOG_DEBUG << "Socket binded";
 
     if (listen(sockfd_, TCPTransport::kNumSlots) != 0) {
-        perror("[ERROR] listen");
+        LOG_ERROR << "listen()";
         return -1;
     }
+    LOG_DEBUG << "Start listening";
 
-    std::cout << "[INFO] Started server on " << server_address_ << ":" << server_portnum_ << '\n';
+    LOG_INFO << " Started server on " << server_address_ << ":" << server_portnum_;
 
     return sockfd_;
 }
@@ -80,19 +87,21 @@ void TCPTransport::Start() {
         socklen_t client_add_size = sizeof(client_addr);
 
         while (running_) {
-            std::cout << "Waiting for connection..." << '\n';
+            LOG_INFO << "Waiting for connection...";
             client_sockfd_ = accept(sockfd_, reinterpret_cast<sockaddr *>(&client_addr), &client_add_size);
             if (client_sockfd_ >= 0) {
                 inet_ntop(AF_INET, &client_addr.sin_addr, source_address_, INET_ADDRSTRLEN);
                 source_port_ = static_cast<int>(ntohs(client_addr.sin_port));
+                LOG_INFO << "Client connected, source address: " << std::string(source_address_) << " source port: " << source_port_;
                 while (true) {  // Use true instead of 1
                     std::uint8_t buffer[kBufferSize];
                     const ssize_t kBytesReceived = recv(client_sockfd_, buffer, sizeof(buffer), 0);
                     if (kBytesReceived > 0) {
                         const std::vector<std::uint8_t> kMessage(buffer, buffer + kBytesReceived);
                         messageQueue_.Push(kMessage);
+                        LOG_DEBUG << "Get message, put in MessageQueue";
                     } else {
-                        std::cout << "Client disconnected." << '\n';
+                        LOG_INFO << "Client disconnected.";
                         close(client_sockfd_);
                         client_sockfd_ = -1;
                         break;
@@ -107,6 +116,8 @@ bool TCPTransport::Send(const std::vector<std::uint8_t> &data) {
     if (client_sockfd_ < 0) {
         return false;
     }
+    LOG_DEBUG << "Send TCP packet to TCP client";
+
     return ::send(client_sockfd_, data.data(), data.size(), 0) != -1;
 }
 
@@ -119,9 +130,9 @@ int TCPTransport::GetClientPort() { return source_port_; }
 void TCPTransport::Destroy() {
     running_ = false;
     shutdown(sockfd_, SHUT_RDWR);
-    std::cout << "joining thread ... " << '\n';
+    LOG_INFO << "joining thread ... ";
     acceptThread_.join();
-    std::cout << "closing socket" << '\n';
+    LOG_INFO << "closing socket";
     close(client_sockfd_);
     close(sockfd_);
     delete[] server_address_;

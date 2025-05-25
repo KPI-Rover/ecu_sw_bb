@@ -9,33 +9,36 @@
 #include <iostream>
 #include <vector>
 
+#include "loggingIncludes.h"
 #include "motorConfig.h"
 
 constexpr double kKillProcessTimeout = 2.0;
 
 int MotorController::Init(const std::vector<MotorConfig>& _motors, uint8_t _motorNumber) {
+    LOG_DEBUG << "Initializing rc drivers";
     if (rc_kill_existing_process(kKillProcessTimeout) < -2) {
-        std::cout << "[ERROR][RC] rc_kill_existing_process" << '\n';
+        LOG_ERROR << "rc_kill_existing_process";
         return -1;
     }
     // start signal handler so we can exit cleanly
 
     if (rc_enable_signal_handler() == -1) {
-        std::cout << "[ERROR][RC] failed to start signal handler" << '\n';
+        LOG_ERROR << "failed to start signal handler";
         // return nullptr;
         return -1;
     }
 
     if (rc_motor_init_freq(RC_MOTOR_DEFAULT_PWM_FREQ) == -1) {
-        std::cout << "[ERROR][RC] failed to start with frequency" << '\n';
+        LOG_ERROR << "failed to start with frequency";
         return -1;
     }
 
     if (rc_encoder_init() == -1) {
-        std::cout << "[ERROR][RC] failed to start with encoder" << '\n';
+        LOG_ERROR << "failed to start with encoder";
         return -1;
     }
 
+    LOG_DEBUG << "Create array of Motor instances";
     motor_number_ = _motorNumber;
 
     for (int i = 0; i < motor_number_; ++i) {
@@ -47,13 +50,13 @@ int MotorController::Init(const std::vector<MotorConfig>& _motors, uint8_t _moto
 
 int MotorController::SetMotorRPM(int channel, int newRPM) {
     if (channel >= motor_number_) {
-        std::cout << "[ERROR][RC] Channel out of range" << '\n';
+        LOG_WARNING << "Channel out of range";
         return -1;
     }
 
     const int kRes = motors_[channel].MotorGo(newRPM);
     if (kRes != 0) {
-        std::cout << "[ERROR][RC] Error while set new RPM" << '\n';
+        LOG_ERROR << "Error while set new RPM";
         return -1;
     }
 
@@ -62,16 +65,17 @@ int MotorController::SetMotorRPM(int channel, int newRPM) {
 
 int MotorController::StopMotor(int channel) {
     if (motors_[channel].MotorStop() != 0) {
-        std::cout << "[ERROR][RC] Error while stoppping motor" << '\n';
+        LOG_ERROR << "Error while stoppping motor";
         return -1;
     }
-    // std::cout << "[INFO][RC] Set RPM to stop because of command" << '\n';
+    // std::cout << "[INFO][RC] Set RPM to stop because of command";
 
     return 0;
 }
 
 void MotorController::Destroy() {
     // delete[] motors;
+    LOG_DEBUG << "Clean up used rc drivers";
     rc_motor_cleanup();
     rc_encoder_cleanup();
 }
@@ -79,5 +83,3 @@ void MotorController::Destroy() {
 int MotorController::GetEncoderCounter(int channel) { return motors_[channel].GetEncoderCounter(); }
 
 int MotorController::GetMotorsNumber() { return motor_number_; }
-
-// MotorProcessor proc;

@@ -7,6 +7,8 @@
 #include <iostream>
 #include <vector>
 
+#include "loggingIncludes.h"
+
 IMUController::IMUController() : data_{}, isStarted_(false), configuration_(rc_mpu_default_config()), actualData_({}) {
     configuration_.i2c_bus = kI2cBus;
     configuration_.gpio_interrupt_pin_chip = kGpioIntPinChip;
@@ -32,20 +34,23 @@ std::vector<float> IMUController::GetData() {
     if (!isStarted_) {
         return {};
     }
-
+    LOG_DEBUG << "Read data from accel and gyro";
     rc_mpu_read_accel(&data_);
     rc_mpu_read_gyro(&data_);
 
     actualData_.resize(kActualDataSize);
     const std::vector<float> kAccelData = GetAccel();
+    LOG_DEBUG << "Get data from accelerometr";
     const int kAccelDataSize = static_cast<int>(kAccelData.size());
     std::copy(kAccelData.begin(), kAccelData.begin() + kAccelDataSize, actualData_.begin());
 
     const std::vector<float> kGyroData = GetGyro();
+    LOG_DEBUG << "Get data from gyroscope";
     const int kGyroDataSize = static_cast<int>(kGyroData.size());
     std::copy(kGyroData.begin(), kGyroData.begin() + kGyroDataSize, actualData_.begin() + kAccelDataSize);
 
     const std::vector<float> kQaternionData = GetQaternion();
+    LOG_DEBUG << "Get data from magnetometer (qaternion)";
     const int kQaternionDataSize = static_cast<int>(kQaternionData.size());
     std::copy(kQaternionData.begin(), kQaternionData.begin() + kQaternionDataSize,
               actualData_.begin() + kAccelDataSize + kGyroDataSize);

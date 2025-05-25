@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+#include "loggingIncludes.h"
+
 UDPClient::UDPClient() : sockfd_(-1), server_portnum_(0), server_address_{} {}
 
 int UDPClient::Init(std::string ip_address, int port) {
@@ -21,10 +23,10 @@ int UDPClient::Init(std::string ip_address, int port) {
 
     server_portnum_ = port;
 
-    std::cout << "initialize socket" << '\n';
+    LOG_DEBUG << "initialize socket";
     sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd_ == -1) {
-        std::cout << "Error while creating socket" << '\n';
+        LOG_ERROR << "Error while creating socket";
         return -1;
     }
 
@@ -40,7 +42,7 @@ bool UDPClient::Send(const std::vector<std::uint8_t> &data) {
     if (sockfd_ < 0) {
         return false;
     }
-
+    LOG_DEBUG << "send UDP packet to UDP server , addr: " << server_address_ << "port: " << server_portnum_;
     return sendto(sockfd_, data.data(), data.size(), 0, reinterpret_cast<sockaddr *>(&serverStruct_),
                   sizeof(serverStruct_)) != -1;
 }
@@ -51,12 +53,12 @@ void UDPClient::Destroy() {
     shutdown(sockfd_, SHUT_WR);
 
     close(sockfd_);
-    std::cout << "joining udp client socket ..." << '\n';
+    LOG_INFO << "joining udp client socket ...";
 }
 
 UDPClient::~UDPClient() {
     shutdown(sockfd_, SHUT_WR);
 
     close(sockfd_);
-    std::cout << "joining udp client socket ..." << '\n';
+    LOG_INFO << "joining udp client socket ...";
 }
