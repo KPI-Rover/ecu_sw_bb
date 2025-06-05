@@ -16,6 +16,7 @@ cd ecu_sw_bb
 git submodule init
 git submodule update
 ```
+<b> Necessarily check if your glog version is v0.5.0 ! </b> 
 
 ### Build Docker Image
 ```
@@ -142,7 +143,7 @@ sudo apt install -y locales
 sudo dpkg-reconfigure locales # Choose a locale en_US.UTF-8 = English, United States, UTF8
 sudo apt upgrade -y
 sudo apt install build-essential -y
-sudo apt-get install -y cpufrequtils
+sudo apt-get install -y cpufrequtils libgoogle-glog-dev
 sudo sed -i 's/GOVERNOR="ondemand"/GOVERNOR="performance"/g' /etc/init.d/cpufrequtils
 ```
 

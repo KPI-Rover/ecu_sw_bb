@@ -1,9 +1,9 @@
 #include <getopt.h>
+#include <glog/logging.h>
 #include <ifaddrs.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <glog/logging.h>
 
 #include <chrono>
 #include <csignal>

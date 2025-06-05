@@ -45,7 +45,6 @@ int TCPTransport::Init() {
     source_address_[0] = '\0';
 
     sockfd_ = socket(AF_INET, SOCK_STREAM, 0);
-    
 
     if (sockfd_ < 0) {
         LOG_ERROR << "Socket()";
@@ -92,7 +91,8 @@ void TCPTransport::Start() {
             if (client_sockfd_ >= 0) {
                 inet_ntop(AF_INET, &client_addr.sin_addr, source_address_, INET_ADDRSTRLEN);
                 source_port_ = static_cast<int>(ntohs(client_addr.sin_port));
-                LOG_INFO << "Client connected, source address: " << std::string(source_address_) << " source port: " << source_port_;
+                LOG_INFO << "Client connected, source address: " << std::string(source_address_)
+                         << " source port: " << source_port_;
                 while (true) {  // Use true instead of 1
                     std::uint8_t buffer[kBufferSize];
                     const ssize_t kBytesReceived = recv(client_sockfd_, buffer, sizeof(buffer), 0);

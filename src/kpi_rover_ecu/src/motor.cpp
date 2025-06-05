@@ -9,8 +9,8 @@
 #include <iostream>
 #include <ratio>
 
-#include "loggingIncludes.h"
 #include "PIDRegulator.h"
+#include "loggingIncludes.h"
 
 Motor::Motor(int assigned_number, bool is_inverted, std::array<float, 3> _coeficients)
     : motorNumber_(assigned_number), inverted_(is_inverted), currentDutyCycle_(0), setpointRpm_(0), actualRpm_(0) {
@@ -91,7 +91,8 @@ int Motor::GetEncoderCounter() {
     const float kTimeDt = GetTimeSegment();
     actualRpm_ = static_cast<int>(GetActualRpm(pid_encoder_ticks, kTimeDt));
     const int kError = setpointRpm_ - actualRpm_;
-    LOG_INFO << "set point " << setpointRpm_ << " current point " << actualRpm_ << " error " << kError << " for motor" << motorNumber_;
+    LOG_INFO << "set point " << setpointRpm_ << " current point " << actualRpm_ << " error " << kError << " for motor"
+             << motorNumber_;
 
     LOG_DEBUG << "Run PID regulator";
     const int kPidOutput = pidRegulator_.Run(static_cast<float>(kError), kTimeDt);

@@ -11,9 +11,9 @@
 #include <vector>
 
 #include "IMUController.h"
-#include "loggingIncludes.h"
 #include "TCPTransport.h"
 #include "UDPClient.h"
+#include "loggingIncludes.h"
 #include "protocolHandler.h"
 
 KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, UDPClient *_udpClient,
@@ -90,7 +90,7 @@ void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
                         send_val.push_back(bytes[j]);
                     }
                 }
-                
+
                 LOG_DEBUG << "use UDP client to send message";
                 udp_client_->Send(send_val);
             }

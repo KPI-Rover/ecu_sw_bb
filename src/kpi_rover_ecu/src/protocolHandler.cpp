@@ -50,7 +50,7 @@ vector<uint8_t> ProtocolHanlder::HandleGetApiVersion(const vector<uint8_t>& mess
     vector<uint8_t> ret_val;
 
     ret_val.push_back(ProtocolHanlder::kIdGetApiVersion);
-    
+
     const uint8_t kResponse = kApiVersion;
     ret_val.push_back(kResponse);
 
