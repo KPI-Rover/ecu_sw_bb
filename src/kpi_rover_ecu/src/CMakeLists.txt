@@ -15,4 +15,7 @@ add_library(kpi_rover_ecu_core STATIC
 target_include_directories(kpi_rover_ecu_core PUBLIC
     ${CMAKE_SOURCE_DIR}/src/kpi_rover_ecu/include
     ${CMAKE_SOURCE_DIR}/external/librobotcontrol/library/include
+    ${CMAKE_SOURCE_DIR}/external/glog/
 )
+
+target_link_libraries(kpi_rover_ecu_core PUBLIC glog)

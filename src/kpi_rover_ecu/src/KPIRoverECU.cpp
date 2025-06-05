@@ -13,6 +13,7 @@
 #include "IMUController.h"
 #include "TCPTransport.h"
 #include "UDPClient.h"
+#include "loggingIncludes.h"
 #include "protocolHandler.h"
 
 KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, UDPClient *_udpClient,
@@ -27,12 +28,14 @@ KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTr
 
 bool KPIRoverECU::Start() {
     tcp_transport_->Start();
+    LOG_DEBUG << "Starting all thread in KPIRoverECU";
     timerThread_ = std::thread([this] { TimerThreadFuction(this->protocol_handler_); });
     processingThread_ = std::thread([this] { ProcessingThreadFunction(); });
     imuThread_ = std::thread([this] { IMUThreadFucntion(this->imu_controller_); });
+    LOG_DEBUG << "All thread in KPIRoverECU started";
 
     if (!timerThread_.joinable() || !processingThread_.joinable() || !imuThread_.joinable()) {
-        std::cout << "Error creating thread" << '\n';
+        LOG_ERROR << "Error creating thread";
         return false;
     }
 
@@ -47,9 +50,11 @@ void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
 
     while (runningProcess_) {
         if (destination_address.empty()) {
+            LOG_DEBUG << "Udp server address is unknown, get address from tcp server clients";
             destination_address = tcp_transport_->GetClientIp();
             destination_port = tcp_transport_->GetClientPort();
             if (!destination_address.empty()) {
+                LOG_DEBUG << "Get UDP server address, initializing UDPClient";
                 udp_client_->Init(destination_address, destination_port);
             }
 
@@ -58,9 +63,11 @@ void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
             if (!kImuData.empty()) {
                 if (packet_number == k16MaxCount) {
                     packet_number = 0;
+                    LOG_DEBUG << "set UDP packet number to 0";
                 }
                 packet_number += 1;
 
+                LOG_DEBUG << "build UDP packet " << packet_number << " for UDP server";
                 std::vector<uint8_t> send_val;
                 send_val.push_back(workClass->GetId());
 
@@ -83,6 +90,8 @@ void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
                         send_val.push_back(bytes[j]);
                     }
                 }
+
+                LOG_DEBUG << "use UDP client to send message";
                 udp_client_->Send(send_val);
             }
         }
@@ -97,13 +106,15 @@ void KPIRoverECU::TimerThreadFuction(ProtocolHanlder *workClass) {
         if (counter_ > 0) {
             rc_usleep(kTimerPrecision);
             counter_--;
+            LOG_DEBUG << "counter decrement: " << counter_;
 
             if (counter_ == 0) {
-                std::cout << "[INFO] Motor set to stop" << '\n';
+                LOG_INFO << "Motor set to stop";
             }
 
         } else if (counter_ == 0) {
             // command to stop all motors
+            LOG_DEBUG << "Send command to stop all motors";
             workClass->HandleMessage(kStopVector);
             imu_controller_->SetDisable();
             rc_usleep(kTimeStop * kOneSecondMicro);
@@ -112,34 +123,42 @@ void KPIRoverECU::TimerThreadFuction(ProtocolHanlder *workClass) {
 }
 
 void KPIRoverECU::ProcessingThreadFunction() {
+    LOG_DEBUG << "start cycle in main thread";
     while (runningProcess_) {
         std::vector<uint8_t> message;
         if (tcp_transport_->Receive(message)) {
+            LOG_DEBUG << "TCP packet received, processing it";
             imu_controller_->SetEnable();
 
             counter_.store(GetCounter());
+            LOG_DEBUG << "set timer counter to GetCounter()";
             const std::vector<uint8_t> kReturnMessage = protocol_handler_->HandleMessage(message);
+            LOG_DEBUG << "get TCP response";
             tcp_transport_->Send(kReturnMessage);
+            LOG_DEBUG << "Send TCP response";
         }
     }
 }
 
 void KPIRoverECU::Stop() {
-    std::cout << "END of program" << '\n';
-    std::cout << "joining threads" << '\n';
+    LOG_INFO << "END of program";
+    LOG_INFO << "joining threads";
     runningState_ = true;
     if (timerThread_.joinable()) {
         timerThread_.join();
+        LOG_DEBUG << "timerThread_ joined";
     }
     runningProcess_ = false;
     if (processingThread_.joinable()) {
         processingThread_.join();
+        LOG_DEBUG << "main thread joined";
     }
     if (imuThread_.joinable()) {
         imuThread_.join();
+        LOG_DEBUG << "IMUThread joined";
     }
 
-    std::cout << "destroying drivers" << '\n';
+    LOG_INFO << "destroying drivers";
     // tcp_transport_->Destroy();
 }
 

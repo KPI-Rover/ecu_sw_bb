@@ -20,6 +20,7 @@ RUN apt-get update -q && \
     build-essential \
     make \
     git \
+    libgoogle-glog-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ENV AS=/usr/bin/arm-linux-gnueabihf-as \

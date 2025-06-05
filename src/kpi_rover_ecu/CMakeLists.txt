@@ -20,6 +20,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     kpi_rover_ecu_core
     Threads::Threads
     robotcontrol
+    glog
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
