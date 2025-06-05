@@ -4,6 +4,8 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <chrono>
 #include <csignal>
@@ -30,6 +32,8 @@ using std::vector;
 
 atomic<bool> running_program(true);
 void InterruptSignalHandler(int signal);
+bool checkDirectory(const std::string& path);
+bool createDirectory(const std::string& path);
 
 int main(int argc, char* argv[]) {
     const char* server_address = "0.0.0.0";
@@ -37,10 +41,11 @@ int main(int argc, char* argv[]) {
     const int kBase = 10;  // Named constant for base 10
     int server_portnum = kDefaultPortNum;
     int log_level = 1;
+    std::string logging_directory = "./log";
 
     // Command-line options
     int opt = 0;
-    while ((opt = getopt(argc, argv, "a:p:l:")) != -1) {
+    while ((opt = getopt(argc, argv, "a:p:l:o:")) != -1) {
         switch (opt) {
             case 'a':
                 server_address = optarg;
@@ -51,16 +56,21 @@ int main(int argc, char* argv[]) {
             case 'l':
                 log_level = strtol(optarg, nullptr, kBase);
                 break;
+            case 'o':
+                logging_directory = optarg;
+                break;
             default:
                 std::cout << "Usage: " << argv[0];
                 std::cout << " [-a server_address] ";
                 std::cout << " [-p server_portnum]";
                 std::cout << " [-l log level]";
+                std::cout << " [-o output direcotry. Example \"./log\" ]";
                 return EXIT_FAILURE;
         }
     }
     // sem_init(&stopProgramSem, 0, 0);
     /* Glog initializing */
+
     google::InitGoogleLogging(argv[0]);
     if (log_level == 0) {
         FLAGS_stderrthreshold = 0;
@@ -70,7 +80,15 @@ int main(int argc, char* argv[]) {
     } else {
         FLAGS_stderrthreshold = 0;
     }
-    FLAGS_log_dir = "./log";
+
+    if (!checkDirectory(logging_directory)) {
+        if (!createDirectory(logging_directory)) {
+            std::cout << "Failed to create directory: " << logging_directory << '\n';
+            return EXIT_FAILURE;
+        }
+    }
+
+    FLAGS_log_dir = logging_directory;
     LOG_INFO << "Logger was set up." << "Directory to log: " << FLAGS_log_dir;
 
     MotorController motors_processor;
@@ -130,6 +148,22 @@ int main(int argc, char* argv[]) {
     motors_processor.Destroy();
 
     return 0;
+}
+
+bool checkDirectory(const std::string& path) {
+    struct stat info;
+    return stat(path.c_str(), &info) == 0 && (info.st_mode & S_IFDIR);
+}
+
+bool createDirectory(const std::string& path) {
+    mode_t mode = 0755;
+    int ret = mkdir(path.c_str(), mode);
+    if (ret == 0 || errno == EEXIST) {
+        return true;
+    } else {
+        std::cerr << "mkdir error: " << std::strerror(errno) << '\n';
+        return false;
+    }
 }
 
 void InterruptSignalHandler(int signal) { running_program = false; }
