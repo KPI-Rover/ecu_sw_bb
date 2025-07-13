@@ -93,11 +93,17 @@ int main(int argc, char* argv[]) {
 
     MotorController motors_processor;
     const uint8_t kMotorNumber = 4;
+    // const std::vector<MotorConfig> kShassisVector = {
+    //     MotorConfig(3, false, {1.5, 0.056, 1.5}),
+    //     MotorConfig(4, false, {1.5, 0.056, 1.5}),
+    //     MotorConfig(1, true, {1.5, 0.056, 1.5}),
+    //     MotorConfig(2, true, {1.5, 0.056, 1.5}),
+    // };
     const std::vector<MotorConfig> kShassisVector = {
-        MotorConfig(3, false, {1.5, 0.056, 1.5}),
-        MotorConfig(4, false, {1.5, 0.056, 1.5}),
-        MotorConfig(1, true, {1.5, 0.056, 1.5}),
-        MotorConfig(2, true, {1.5, 0.056, 1.5}),
+        MotorConfig(3, false, {0, 0, 0}),
+        MotorConfig(4, false, {0, 0, 0}),
+        MotorConfig(1, true, {0, 0, 0}),
+        MotorConfig(2, true, {0, 0, 0}),
     };
 
     motors_processor.Init(kShassisVector, kMotorNumber);
