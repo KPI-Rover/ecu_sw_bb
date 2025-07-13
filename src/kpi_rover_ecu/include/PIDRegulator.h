@@ -8,7 +8,7 @@
 class PIDRegulator {
    public:
     void Init(std::array<float, 3> _coeficients);
-    int Run(float kError, float kTimeDt);
+    int Run(float actual, float setpoint, float dt);
 
    private:
     float kp_ = 0;

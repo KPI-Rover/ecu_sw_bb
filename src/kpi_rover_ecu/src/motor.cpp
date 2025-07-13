@@ -19,15 +19,15 @@ Motor::Motor(int assigned_number, bool is_inverted, std::array<float, 3> _coefic
 }
 
 int Motor::MotorGo(int newRPM) {
-    if (newRPM > kMaxRpm) {
-        LOG_WARNING << " RPM out of range for motor" << motorNumber_;
-        newRPM = kMaxRpm;
-    }
+    // if (newRPM > kMaxRpm) {
+    //     LOG_WARNING << " RPM out of range for motor" << motorNumber_;
+    //     newRPM = kMaxRpm;
+    // }
 
-    if (newRPM < -kMaxRpm) {
-        LOG_WARNING << "RPM out of range for motor" << motorNumber_;
-        newRPM = -kMaxRpm;
-    }
+    // if (newRPM < -kMaxRpm) {
+    //     LOG_WARNING << "RPM out of range for motor" << motorNumber_;
+    //     newRPM = -kMaxRpm;
+    // }
     LOG_DEBUG << "Set new RPM for motor " << motorNumber_;
     if (MotorSet(newRPM) == -1) {
         LOG_ERROR << "MotorSet failed";
@@ -94,12 +94,11 @@ int Motor::GetEncoderCounter() {
     LOG_INFO << "set point " << setpointRpm_ << " current point " << actualRpm_ << " error " << kError << " for motor"
              << motorNumber_;
 
-    LOG_DEBUG << "Run PID regulator";
-    const int kPidOutput = pidRegulator_.Run(static_cast<float>(kError), kTimeDt);
+    // LOG_DEBUG << "Run PID regulator";
+    const int kPidOutput = pidRegulator_.Run(actualRpm_, setpointRpm_, kTimeDt);
     rc_encoder_write(motorNumber_, 0);
-    LOG_DEBUG << "set encoder value to " << 0;
-    LOG_DEBUG << "Set additional result PID value " << kPidOutput << " for motor " << motorNumber_;
-    MotorSet(setpointRpm_ + kPidOutput);
+    LOG_DEBUG << "Set absoulute PID value" << kPidOutput;
+    MotorSet(kPidOutput);
     return pid_encoder_ticks;
 }
 
