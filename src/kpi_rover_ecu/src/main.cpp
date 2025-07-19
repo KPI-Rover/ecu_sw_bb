@@ -41,11 +41,14 @@ int main(int argc, char* argv[]) {
     const int kBase = 10;  // Named constant for base 10
     int server_portnum = kDefaultPortNum;
     int log_level = 1;
+    float coef_p = 0;
+    float coef_i = 0;
+    float coef_d = 0;
     std::string logging_directory = "./log";
 
     // Command-line options
     int opt = 0;
-    while ((opt = getopt(argc, argv, "a:p:l:o:")) != -1) {
+    while ((opt = getopt(argc, argv, "a:p:l:o:q:w:e:")) != -1) {
         switch (opt) {
             case 'a':
                 server_address = optarg;
@@ -58,6 +61,15 @@ int main(int argc, char* argv[]) {
                 break;
             case 'o':
                 logging_directory = optarg;
+                break;
+            case 'q':
+                coef_p = strtof(optarg, nullptr);
+                break;
+            case 'w':
+                coef_i = strtof(optarg, nullptr);
+                break;
+            case 'e':
+                coef_d = strtof(optarg, nullptr);
                 break;
             default:
                 std::cout << "Usage: " << argv[0];
@@ -100,10 +112,10 @@ int main(int argc, char* argv[]) {
     //     MotorConfig(2, true, {1.5, 0.056, 1.5}),
     // };
     const std::vector<MotorConfig> kShassisVector = {
-        MotorConfig(3, false, {0, 0, 0}),
-        MotorConfig(4, false, {0, 0, 0}),
-        MotorConfig(1, true, {0, 0, 0}),
-        MotorConfig(2, true, {0, 0, 0}),
+        MotorConfig(3, false, {coef_p, coef_i, coef_d}),
+        MotorConfig(4, false, {coef_p, coef_i, coef_d}),
+        MotorConfig(1, true, {coef_p, coef_i, coef_d}),
+        MotorConfig(2, true, {coef_p, coef_i, coef_d}),
     };
 
     motors_processor.Init(kShassisVector, kMotorNumber);
