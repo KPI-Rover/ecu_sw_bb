@@ -19,22 +19,23 @@ Motor::Motor(int assigned_number, bool is_inverted, std::array<float, 3> _coefic
 }
 
 int Motor::MotorGo(int newRPM) {
-    // if (newRPM > kMaxRpm) {
-    //     LOG_WARNING << " RPM out of range for motor" << motorNumber_;
-    //     newRPM = kMaxRpm;
-    // }
+    if (newRPM > kMaxRpm) {
+        LOG_WARNING << " RPM out of range for motor" << motorNumber_;
+        newRPM = kMaxRpm;
+    }
 
-    // if (newRPM < -kMaxRpm) {
-    //     LOG_WARNING << "RPM out of range for motor" << motorNumber_;
-    //     newRPM = -kMaxRpm;
-    // }
-    LOG_DEBUG << "Set new RPM for motor " << motorNumber_;
+    if (newRPM < -kMaxRpm) {
+        LOG_WARNING << "RPM out of range for motor" << motorNumber_;
+        newRPM = -kMaxRpm;
+    }
+    
     if (MotorSet(newRPM) == -1) {
         LOG_ERROR << "MotorSet failed";
         return -1;
     }
 
     setpointRpm_ = newRPM;
+    LOG_DEBUG << "Set new RPM " << setpointRpm_ << " for motor " << motorNumber_;
     return 0;
 }
 
@@ -72,7 +73,7 @@ float Motor::GetTimeSegment() {
 }
 
 float Motor::GetActualRpm(int _ticks, float _timeSegment) {
-    LOG_DEBUG << "Get actual RPM for " << _timeSegment << " for motor" << motorNumber_;
+    LOG_DEBUG << "Get actual RPM " << _timeSegment << " for motor " << motorNumber_;
     const float kRevolutions = static_cast<float>(_ticks) / static_cast<float>(kLoopTicks);
     const float kInputPoint =
         (std::round((kRevolutions * kSecondsMinute * kMiliSecondsSeconds) / _timeSegment)) * kSpeedIndexMultipler;
@@ -84,7 +85,7 @@ int Motor::GetEncoderCounter() {
     const int kEncoderTicks = rc_encoder_read(motorNumber_);
     int pid_encoder_ticks = kEncoderTicks;
     if (!inverted_) {
-        LOG_DEBUG << "Change encoder value sign for motor" << motorNumber_;
+        LOG_DEBUG << "Change encoder value sign for motor " << motorNumber_;
         pid_encoder_ticks *= -1;
     }
 
@@ -97,7 +98,7 @@ int Motor::GetEncoderCounter() {
     // LOG_DEBUG << "Run PID regulator";
     const int kPidOutput = pidRegulator_.Run(actualRpm_, setpointRpm_, kTimeDt);
     rc_encoder_write(motorNumber_, 0);
-    LOG_DEBUG << "Set absoulute PID value" << kPidOutput;
+    LOG_DEBUG << "Set absoulute PID value " << kPidOutput << "motor" << motorNumber_;
     MotorSet(kPidOutput);
     return pid_encoder_ticks;
 }
