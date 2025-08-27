@@ -6,6 +6,13 @@ BUILD_VARIANT="Target"
 
 TARGET_OPTIONS="-DBUILD_VARIANT=${BUILD_VARIANT}"
 
+
+if [[ "$(docker images -q kpi-rover-bbb-build 2> /dev/null)" == "" ]]; then
+    echo "-- Building Docker image..."
+    docker build -t kpi-rover-bbb-build -f docker/Dockerfile.build .
+fi
+
+
 # Ensure build directory exists
 mkdir -p build/${BUILD_VARIANT}
 
