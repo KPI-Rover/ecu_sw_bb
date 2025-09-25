@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
 
     // Command-line options
     int opt = 0;
-    while ((opt = getopt(argc, argv, "a:p:l:o:q:w:e:")) != -1) {
+    while ((opt = getopt(argc, argv, "a:p:l:o:")) != -1) {
         switch (opt) {
             case 'a':
                 server_address = optarg;
@@ -61,15 +61,6 @@ int main(int argc, char* argv[]) {
                 break;
             case 'o':
                 logging_directory = optarg;
-                break;
-            case 'q':
-                coef_p = strtof(optarg, nullptr);
-                break;
-            case 'w':
-                coef_i = strtof(optarg, nullptr);
-                break;
-            case 'e':
-                coef_d = strtof(optarg, nullptr);
                 break;
             default:
                 std::cout << "Usage: " << argv[0];
@@ -105,17 +96,11 @@ int main(int argc, char* argv[]) {
 
     MotorController motors_processor;
     const uint8_t kMotorNumber = 4;
-    // const std::vector<MotorConfig> kShassisVector = {
-    //     MotorConfig(3, false, {1.5, 0.056, 1.5}),
-    //     MotorConfig(4, false, {1.5, 0.056, 1.5}),
-    //     MotorConfig(1, true, {1.5, 0.056, 1.5}),
-    //     MotorConfig(2, true, {1.5, 0.056, 1.5}),
-    // };
     const std::vector<MotorConfig> kShassisVector = {
-        MotorConfig(3, false, {coef_p, coef_i, coef_d}),
-        MotorConfig(4, false, {coef_p, coef_i, coef_d}),
-        MotorConfig(1, true, {coef_p, coef_i, coef_d}),
-        MotorConfig(2, true, {coef_p, coef_i, coef_d}),
+        MotorConfig(3, false, {3.5, 0.2, 21}),
+        MotorConfig(4, false, {3.5, 0.2, 21}),
+        MotorConfig(1, true, {3.5, 0.2, 21}),
+        MotorConfig(2, true, {3.5, 0.2, 21}),
     };
 
     motors_processor.Init(kShassisVector, kMotorNumber);
