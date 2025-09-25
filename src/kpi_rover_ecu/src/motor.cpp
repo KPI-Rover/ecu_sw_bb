@@ -28,7 +28,7 @@ int Motor::MotorGo(int newRPM) {
         LOG_WARNING << "RPM out of range for motor" << motorNumber_;
         newRPM = -kMaxRpm;
     }
-    
+
     if (MotorSet(newRPM) == -1) {
         LOG_ERROR << "MotorSet failed";
         return -1;
