@@ -29,12 +29,14 @@ KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTr
 bool KPIRoverECU::Start() {
     tcp_transport_->Start();
     LOG_DEBUG << "Starting all thread in KPIRoverECU";
-    timerThread_ = std::thread([this] { TimerThreadFuction(this->protocol_handler_); });
+    //timerThread_ = std::thread([this] { TimerThreadFuction(this->protocol_handler_); });
+
+
     processingThread_ = std::thread([this] { ProcessingThreadFunction(); });
-    imuThread_ = std::thread([this] { IMUThreadFucntion(this->imu_controller_); });
+    // imuThread_ = std::thread([this] { IMUThreadFucntion(this->imu_controller_); });
     LOG_DEBUG << "All thread in KPIRoverECU started";
 
-    if (!timerThread_.joinable() || !processingThread_.joinable() || !imuThread_.joinable()) {
+    if (!processingThread_.joinable() ) {
         LOG_ERROR << "Error creating thread";
         return false;
     }
