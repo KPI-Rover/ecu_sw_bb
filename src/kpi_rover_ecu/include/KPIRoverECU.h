@@ -4,10 +4,13 @@
 #include <atomic>
 #include <cstdint>
 #include <thread>
+#include <vector>
 
 #include "IMUController.h"
 #include "TCPTransport.h"
 #include "UDPClient.h"
+#include "motorConfig.h"
+#include "motorsController.h"
 #include "protocolHandler.h"
 
 // Constants for timing control
@@ -24,7 +27,9 @@ class KPIRoverECU {
     void IMUThreadFucntion(IMUController *workClass);
 
     KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, UDPClient *_udpClient,
-                IMUController *_imuController);
+                IMUController *_imuController, MotorController *_motorController,
+                const std::vector<MotorConfig> &_motorConfigs, uint8_t _motorNumber, const std::string &_serverAddress,
+                int _serverPort);
     bool Start();
     void Stop();
 
@@ -33,6 +38,11 @@ class KPIRoverECU {
     TCPTransport *tcp_transport_;
     IMUController *imu_controller_;
     UDPClient *udp_client_;
+    MotorController *motor_controller_;
+    std::vector<MotorConfig> motor_configs_;
+    uint8_t motor_number_;
+    std::string server_address_;
+    int server_port_;
     std::thread timerThread_;
     std::thread processingThread_;
     std::thread imuThread_;

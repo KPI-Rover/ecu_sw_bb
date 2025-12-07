@@ -19,7 +19,7 @@ constexpr uint8_t ProtocolHanlder::kIdSetAllMotorsSpeed;
 constexpr uint8_t ProtocolHanlder::kIdGetEncoder;
 constexpr uint8_t ProtocolHanlder::kIdGetAllEncoders;
 
-ProtocolHanlder::ProtocolHanlder(MotorController* motorDriver) : motors_controller_(motorDriver) {}
+ProtocolHanlder::ProtocolHanlder(MotorController& motorDriver) : motors_controller_(motorDriver) {}
 
 vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(const vector<uint8_t>& message) {
     LOG_INFO << "Get command: set one motor";
@@ -30,8 +30,8 @@ vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(const vector<uint8_t>& mess
     memcpy(&k_motor_rpm, &message[2], sizeof(int32_t));
     k_motor_rpm = static_cast<int32_t>(ntohl(k_motor_rpm));
 
-    if (motors_controller_->SetMotorRPM(static_cast<int>(kMotorId), static_cast<int>(k_motor_rpm)) != 0) {
-        LOG_ERROR << "Error in setMotorRPM, retry connection";
+    if (motors_controller_.SetSetpoint(static_cast<int>(kMotorId), static_cast<int>(k_motor_rpm)) != 0) {
+        LOG_ERROR << "Error in SetSetpoint, retry connection";
         return {};
     }
     LOG_DEBUG << "motor " << static_cast<int>(kMotorId) << " new rpm " << static_cast<int>(k_motor_rpm);
@@ -59,20 +59,20 @@ vector<uint8_t> ProtocolHanlder::HandleGetApiVersion(const vector<uint8_t>& mess
 
 vector<uint8_t> ProtocolHanlder::HandleSetAllMotorsSpeed(const vector<uint8_t>& message) {
     LOG_INFO << "Get command: set all motors ";
-    std::vector<int32_t> motors_rpm_arr(motors_controller_->GetMotorsNumber(), 0);
+    std::vector<int32_t> motors_rpm_arr(motors_controller_.GetMotorsNumber(), 0);
     vector<uint8_t> ret_val;
 
-    for (int i = 0; i < motors_controller_->GetMotorsNumber(); i++) {
+    for (int i = 0; i < motors_controller_.GetMotorsNumber(); i++) {
         memcpy(&motors_rpm_arr[i], &message[1 + i * sizeof(int32_t)], sizeof(int32_t));
         motors_rpm_arr[i] = static_cast<int32_t>(ntohl(motors_rpm_arr[i]));
     }
 
-    for (int i = 0; i < motors_controller_->GetMotorsNumber(); i++) {
+    for (int i = 0; i < motors_controller_.GetMotorsNumber(); i++) {
         if (motors_rpm_arr[i] != 0) {
             LOG_DEBUG << "motor " << i << " new rpm " << static_cast<int>(motors_rpm_arr[i]);
         }
 
-        if (motors_controller_->SetMotorRPM(i, static_cast<int>(motors_rpm_arr[i])) != 0) {
+        if (motors_controller_.SetSetpoint(i, static_cast<int>(motors_rpm_arr[i])) != 0) {
             LOG_ERROR << "Error in setMotorRPM, retry connection";
             return {};
         }
@@ -88,7 +88,7 @@ vector<uint8_t> ProtocolHanlder::HandleGetEncoder(const vector<uint8_t>& message
     vector<uint8_t> ret_val;
     LOG_DEBUG << "Get motor " << static_cast<int>(kMotorId) << " encoder ";
 
-    const int32_t kMotorRpm = motors_controller_->GetEncoderCounter(kMotorId);
+    const int32_t kMotorRpm = motors_controller_.GetEncoderCounter(kMotorId);
     LOG_DEBUG << "Build response ";
     ret_val.push_back(ProtocolHanlder::kIdGetEncoder);
 
@@ -107,8 +107,8 @@ vector<uint8_t> ProtocolHanlder::HandleGetAllEncoders(const vector<uint8_t>& mes
 
     LOG_DEBUG << "Build response ";
     uint8_t buffer[sizeof(int32_t)];
-    for (int i = 0; i < motors_controller_->GetMotorsNumber(); i++) {
-        auto encoder_rpm = static_cast<int32_t>(htonl(motors_controller_->GetEncoderCounter(i)));
+    for (int i = 0; i < motors_controller_.GetMotorsNumber(); i++) {
+        auto encoder_rpm = static_cast<int32_t>(htonl(motors_controller_.GetEncoderCounter(i)));
         std::memcpy(buffer, &encoder_rpm, sizeof(int32_t));
         ret_val.insert(ret_val.end(), buffer, buffer + sizeof(int32_t));
     }
@@ -148,7 +148,7 @@ vector<uint8_t> ProtocolHanlder::MotorsStopMessage() {
     int32_t stop_value = 0;
     ret_val.push_back(ProtocolHanlder::kIdSetAllMotorsSpeed);
     uint8_t buffer[sizeof(int32_t)];
-    for (int i = 0; i < motors_controller_->GetMotorsNumber(); i++) {
+    for (int i = 0; i < motors_controller_.GetMotorsNumber(); i++) {
         std::memcpy(buffer, &stop_value, sizeof(int32_t));
         ret_val.insert(ret_val.end(), buffer, buffer + sizeof(int32_t));
     }

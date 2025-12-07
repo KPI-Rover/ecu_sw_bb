@@ -16,13 +16,14 @@ class ProtocolHanlder {
     static constexpr uint8_t kIdGetEncoder = 0x04;
     static constexpr uint8_t kIdGetAllEncoders = 0x05;
 
-    explicit ProtocolHanlder(MotorController* motorDriver);
+    explicit ProtocolHanlder(MotorController& motorDriver);
 
     std::vector<uint8_t> HandleMessage(const std::vector<uint8_t>& message);
     std::vector<uint8_t> MotorsStopMessage();
+    MotorController& GetMotorController() { return motors_controller_; }
 
    private:
-    MotorController* motors_controller_;
+    MotorController& motors_controller_;
     std::vector<uint8_t> HandleSetMotorSpeed(const std::vector<uint8_t>& message);
     std::vector<uint8_t> HandleGetApiVersion(const std::vector<uint8_t>& message);
     std::vector<uint8_t> HandleSetAllMotorsSpeed(const std::vector<uint8_t>& message);

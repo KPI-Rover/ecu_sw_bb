@@ -48,8 +48,9 @@ class ProtocolTest : public ::testing::Test {
         EXPECT_CALL(GetMockRCEncoder(), init()).WillOnce(::testing::Return(0));
 
         // Initialize with the same configuration as in main.cpp
-        std::vector<MotorConfig> chassis_config = {MotorConfig(1, false, {1.5f, 0.056f, 1.5f}), MotorConfig(2, false, {1.5f, 0.056f, 1.5f}), MotorConfig(3, true, {1.5f, 0.056f, 1.5f}),
-                                                   MotorConfig(4, true, {1.5f, 0.056f, 1.5f})};
+        std::vector<MotorConfig> chassis_config = {
+            MotorConfig(1, false, {1.5f, 0.056f, 1.5f}), MotorConfig(2, false, {1.5f, 0.056f, 1.5f}),
+            MotorConfig(3, true, {1.5f, 0.056f, 1.5f}), MotorConfig(4, true, {1.5f, 0.056f, 1.5f})};
 
         motors_processor.Init(chassis_config, kMotorNumber);
         protocol_handler = new ProtocolHanlder(&motors_processor);
@@ -163,8 +164,9 @@ TEST_F(ProtocolTest, GetAllEncodersTest) {
 
     ASSERT_EQ(response.size(), 1 + 4 * kMotorNumber);  // 1 byte for command ID + 4 bytes per motor
     ASSERT_EQ(response[0], ProtocolHanlder::kIdGetAllEncoders);
-    
-    // TODO: Assertion of values was deleted because test-framework read values not correct. Values assertion was succesfully tested manually.
+
+    // TODO: Assertion of values was deleted because test-framework read values not correct. Values assertion was
+    // succesfully tested manually.
 }
 
 // Test invalid command ID

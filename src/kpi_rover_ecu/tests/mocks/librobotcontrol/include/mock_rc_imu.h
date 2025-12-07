@@ -12,10 +12,10 @@
  */
 class MockRCMPU {
    public:
-    MOCK_METHOD(int, initialize_dmp, (rc_mpu_data_t* data, rc_mpu_config_t config), ());
+    MOCK_METHOD(int, initialize_dmp, (rc_mpu_data_t * data, rc_mpu_config_t config), ());
     MOCK_METHOD(void, power_off, (), ());
-    MOCK_METHOD(int, read_accel, (rc_mpu_data_t* data), ());
-    MOCK_METHOD(int, read_gyro, (rc_mpu_data_t* data), ());
+    MOCK_METHOD(int, read_accel, (rc_mpu_data_t * data), ());
+    MOCK_METHOD(int, read_gyro, (rc_mpu_data_t * data), ());
     MOCK_METHOD(std::vector<float>, get_accel, (), ());
     MOCK_METHOD(std::vector<float>, get_gyro, (), ());
     MOCK_METHOD(std::vector<float>, get_quaternion, (), ());

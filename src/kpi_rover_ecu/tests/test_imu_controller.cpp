@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include <vector>
+
 #include "IMUController.h"
 
 // Mock libraray for rc/mpu functionality
@@ -60,8 +61,8 @@ TEST_F(IMUControllerTest, GetDataWhenEnabled) {
 
     std::vector<float> data = imu_controller.GetData();
 
-    ASSERT_EQ(data.size(), 10);  
-    SUCCEED();  
+    ASSERT_EQ(data.size(), 10);
+    SUCCEED();
 }
 
 // Test IMUController::Stop

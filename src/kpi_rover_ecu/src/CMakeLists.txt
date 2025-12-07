@@ -9,6 +9,9 @@ add_library(kpi_rover_ecu_core STATIC
     PIDRegulator.cpp
     IMUController.cpp
     UDPClient.cpp
+    Encoder.cpp
+    Odometer.cpp
+    EncoderController.cpp
 )
 
 # Include public headers

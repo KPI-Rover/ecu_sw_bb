@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "EncoderController.h"
 #include "IMUController.h"
 #include "TCPTransport.h"
 #include "UDPClient.h"
@@ -17,26 +18,63 @@
 #include "protocolHandler.h"
 
 KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, UDPClient *_udpClient,
-                         IMUController *_imuController)
+                         IMUController *_imuController, MotorController *_motorController,
+                         const std::vector<MotorConfig> &_motorConfigs, uint8_t _motorNumber,
+                         const std::string &_serverAddress, int _serverPort)
     : protocol_handler_(_protocolHandler),
       tcp_transport_(_tcpTransport),
       imu_controller_(_imuController),
       udp_client_(_udpClient),
+      motor_controller_(_motorController),
+      motor_configs_(_motorConfigs),
+      motor_number_(_motorNumber),
+      server_address_(_serverAddress),
+      server_port_(_serverPort),
       counter_(GetCounter()),
       runningProcess_(true),
       runningState_(false) {}
 
 bool KPIRoverECU::Start() {
-    tcp_transport_->Start();
-    LOG_DEBUG << "Starting all thread in KPIRoverECU";
-    //timerThread_ = std::thread([this] { TimerThreadFuction(this->protocol_handler_); });
+    // Initialize EncoderController first
+    if (EncoderController::Init() != 0) {
+        LOG_ERROR << "Failed to initialize EncoderController";
+        return false;
+    }
 
+    // Initialize MotorController
+    if (motor_controller_->Init(motor_configs_, motor_number_) != 0) {
+        LOG_ERROR << "Failed to initialize MotorController";
+        EncoderController::Destroy();
+        return false;
+    }
+
+    // Initialize IMUController
+    if (imu_controller_->Init() == -1) {
+        LOG_ERROR << "Error initializing IMU controller";
+        motor_controller_->Destroy();
+        EncoderController::Destroy();
+        return false;
+    }
+
+    // Initialize TCP Transport
+    if (tcp_transport_->Init() == -1) {
+        LOG_ERROR << "Error creating socket";
+        imu_controller_->Stop();
+        motor_controller_->Destroy();
+        EncoderController::Destroy();
+        return false;
+    }
+
+    tcp_transport_->Start();
+    motor_controller_->Start();
+    LOG_DEBUG << "Starting all thread in KPIRoverECU";
+    // timerThread_ = std::thread([this] { TimerThreadFuction(this->protocol_handler_); });
 
     processingThread_ = std::thread([this] { ProcessingThreadFunction(); });
     // imuThread_ = std::thread([this] { IMUThreadFucntion(this->imu_controller_); });
     LOG_DEBUG << "All thread in KPIRoverECU started";
 
-    if (!processingThread_.joinable() ) {
+    if (!processingThread_.joinable()) {
         LOG_ERROR << "Error creating thread";
         return false;
     }
@@ -110,13 +148,9 @@ void KPIRoverECU::TimerThreadFuction(ProtocolHanlder *workClass) {
             counter_--;
             LOG_DEBUG << "counter decrement: " << counter_;
 
-            if (counter_ == 0) {
-                LOG_INFO << "Motor set to stop";
-            }
-
-        } else if (counter_ == 0) {
+        } else  {
             // command to stop all motors
-            LOG_DEBUG << "Send command to stop all motors";
+            LOG_ERROR << "Send command to stop all motors";
             workClass->HandleMessage(kStopVector);
             imu_controller_->SetDisable();
             rc_usleep(kTimeStop * kOneSecondMicro);
@@ -160,8 +194,13 @@ void KPIRoverECU::Stop() {
         LOG_DEBUG << "IMUThread joined";
     }
 
+    motor_controller_->Stop();
     LOG_INFO << "destroying drivers";
-    // tcp_transport_->Destroy();
+    motor_controller_->Destroy();
+    imu_controller_->Stop();
+    tcp_transport_->Destroy();
+    udp_client_->Destroy();
+    EncoderController::Destroy();
 }
 
 int KPIRoverECU::GetCounter() { return (kTimeStop * kOneSecondMicro) / kTimerPrecision; }

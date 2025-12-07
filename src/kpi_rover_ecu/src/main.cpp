@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <atomic>
 #include <chrono>
 #include <csignal>
 #include <cstdint>
@@ -44,6 +45,9 @@ int main(int argc, char* argv[]) {
     float coef_p = 0;
     float coef_i = 0;
     float coef_d = 0;
+    bool has_coef_p = false;
+    bool has_coef_i = false;
+    bool has_coef_d = false;
     std::string logging_directory = "./log";
 
     // Command-line options
@@ -64,12 +68,15 @@ int main(int argc, char* argv[]) {
                 break;
             case 'q':
                 coef_p = strtof(optarg, nullptr);
+                has_coef_p = true;
                 break;
             case 'w':
                 coef_i = strtof(optarg, nullptr);
+                has_coef_i = true;
                 break;
             case 'e':
                 coef_d = strtof(optarg, nullptr);
+                has_coef_d = true;
                 break;
             default:
                 std::cout << "Usage: " << argv[0];
@@ -101,47 +108,45 @@ int main(int argc, char* argv[]) {
     }
 
     FLAGS_log_dir = logging_directory;
+    FLAGS_alsologtostderr = false;
+    std::string log_file = logging_directory + "/current.log";
+    google::SetLogDestination(google::GLOG_INFO, log_file.c_str());
+    google::SetLogDestination(google::GLOG_WARNING, log_file.c_str());
+    google::SetLogDestination(google::GLOG_ERROR, log_file.c_str());
     LOG_INFO << "Logger was set up." << "Directory to log: " << FLAGS_log_dir;
 
+    // Create all objects in main
     MotorController motors_processor;
     const uint8_t kMotorNumber = 4;
-    // const std::vector<MotorConfig> kShassisVector = {
-    //     MotorConfig(3, false, {1.5, 0.056, 1.5}),
-    //     MotorConfig(4, false, {1.5, 0.056, 1.5}),
-    //     MotorConfig(1, true, {1.5, 0.056, 1.5}),
-    //     MotorConfig(2, true, {1.5, 0.056, 1.5}),
-    // };
+
+    // Conservative default PID: kp = 8.0, ki = 0.0, kd = 1.0 unless overridden via flags (-q, -w, -e)
+    const float default_kp = 8.0f;
+    const float default_ki = 2.00f;
+    const float default_kd = 0.01f;
+    const float default_alpha = 0.7f;
+
+    const float active_kp = has_coef_p ? coef_p : default_kp;
+    const float active_ki = has_coef_i ? coef_i : default_ki;
+    const float active_kd = has_coef_d ? coef_d : default_kd;
+    const float active_alpha = default_alpha;
+
     const std::vector<MotorConfig> kShassisVector = {
-        MotorConfig(3, false, {coef_p, coef_i, coef_d}),
-        MotorConfig(4, false, {coef_p, coef_i, coef_d}),
-        MotorConfig(1, true, {coef_p, coef_i, coef_d}),
-        MotorConfig(2, true, {coef_p, coef_i, coef_d}),
+        MotorConfig(3, false, {active_kp, active_ki, active_kd}, active_alpha),
+        MotorConfig(4, false, {active_kp, active_ki, active_kd}, active_alpha),
+        MotorConfig(1, true, {active_kp, active_ki, active_kd}, active_alpha),
+        MotorConfig(2, true, {active_kp, active_ki, active_kd}, active_alpha),
     };
 
-    motors_processor.Init(kShassisVector, kMotorNumber);
-    ProtocolHanlder protocol_handler(&motors_processor);
-
+    ProtocolHanlder protocol_handler(motors_processor);
     IMUController imu_controller;
-
-    if (imu_controller.Init() == -1) {
-        LOG_ERROR << "Error initializing IMU controller";
-        imu_controller.Stop();
-        return 1;
-    }
-
     TCPTransport tcp_transport(server_address, server_portnum);
     UDPClient udp_client;
 
-    if (tcp_transport.Init() == -1) {
-        LOG_ERROR << "Error creating socket";
-        tcp_transport.Destroy();
-        udp_client.Destroy();
-        return 1;
-    }
-
     LOG_INFO << "start ...";
 
-    KPIRoverECU kpi_rover_ecu(&protocol_handler, &tcp_transport, &udp_client, &imu_controller);
+    // Pass configuration to KPIRoverECU, Init functions will be called from Start()
+    KPIRoverECU kpi_rover_ecu(&protocol_handler, &tcp_transport, &udp_client, &imu_controller, &motors_processor,
+                              kShassisVector, kMotorNumber, server_address, server_portnum);
 
     if (!kpi_rover_ecu.Start()) {
         LOG_ERROR << "Error In intitalizing main class";

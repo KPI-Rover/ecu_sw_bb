@@ -33,58 +33,58 @@ class MotorTest : public ::testing::Test {
     }
 };
 
-TEST_F(MotorTest, MotorGoCallsRcMotorSet) {
+TEST_F(MotorTest, SetSetpointCallsRcMotorSet) {
     // Set up the expectation before creating the motor
     // Expect rc_motor_set to be called with channel 0 and duty cycle 256/1000.0
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::DoubleEq(1))).WillOnce(::testing::Return(0));
 
     motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
-    int result = motor->MotorGo(Motor::kMaxRpm);
+    int result = motor->SetSetpoint(Motor::kMaxRpm);
 
-    EXPECT_EQ(0, result) << "MotorGo should return success";
+    EXPECT_EQ(0, result) << "SetSetpoint should return success";
 }
 
-// Test MotorGo with inverted motor direction
-TEST_F(MotorTest, MotorGoInverted) {
+// Test SetSetpoint with inverted motor direction
+TEST_F(MotorTest, SetSetpointInverted) {
     // For inverted motor, the duty cycle should be negative
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::Lt(0))).WillOnce(::testing::Return(0));
 
     motor = new Motor(0, true, {1.5f, 0.056f, 1.5f});
-    int result = motor->MotorGo(Motor::kMaxRpm);
+    int result = motor->SetSetpoint(Motor::kMaxRpm);
 
     EXPECT_EQ(0, result);
 }
 
-// Test MotorGo with RPM above maximum
-TEST_F(MotorTest, MotorGoAboveMaxRPM) {
-    // Verify behavior with RPM above maximum (should clamp to MAX_RPM)
+// Test SetSetpoint with RPM above maximum
+TEST_F(MotorTest, SetSetpointAboveMaxRPM) {
+    // Verify behaviour with RPM above maximum (should clamp to MAX_RPM)
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::DoubleEq(1))).WillOnce(::testing::Return(0));
 
     motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
-    int result = motor->MotorGo(Motor::kMaxRpm + 1);
+    int result = motor->SetSetpoint(Motor::kMaxRpm + 1);
 
     EXPECT_EQ(0, result);
 }
 
-// Test MotorGo with RPM below -maximum
-TEST_F(MotorTest, MotorGoBelowMinusMaxRPM) {
+// Test SetSetpoint with RPM below -maximum
+TEST_F(MotorTest, SetSetpointBelowMinusMaxRPM) {
     // Verify behaviour with RPM below -maximum (should clamp to -MAX_RPM)
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::DoubleEq(-1))).WillOnce(::testing::Return(0));
 
     motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
-    int result = motor->MotorGo(-Motor::kMaxRpm - 1);
+    int result = motor->SetSetpoint(-Motor::kMaxRpm - 1);
 
     EXPECT_EQ(0, result);
 }
 
-// Test MotorGo with set function returning error
-TEST_F(MotorTest, MotorGoSetError) {
+// Test SetSetpoint with set function returning error
+TEST_F(MotorTest, SetSetpointSetError) {
     EXPECT_CALL(GetMockRCMotor(), set(0, ::testing::_)).WillOnce(::testing::Return(-1));
 
     motor = new Motor(0, false, {1.5f, 0.056f, 1.5f});
-    int result = motor->MotorGo(Motor::kMaxRpm);
+    int result = motor->SetSetpoint(Motor::kMaxRpm);
 
-    EXPECT_NE(0, result) << "MotorGo should return error";
+    EXPECT_NE(0, result) << "SetSetpoint should return error";
 }
 
 // Test MotorStop function

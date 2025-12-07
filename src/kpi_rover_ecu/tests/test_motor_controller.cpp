@@ -34,11 +34,8 @@ class MotorControllerTest : public ::testing::Test {
 
         // Initialize with the same configuration as in the provided example
         std::vector<MotorConfig> motor_configs = {
-            MotorConfig(1, false, {1.5f, 0.056f, 1.5f}),
-            MotorConfig(2, false, {1.5f, 0.056f, 1.5f}),
-            MotorConfig(3, true, {1.5f, 0.056f, 1.5f}),
-            MotorConfig(4, true, {1.5f, 0.056f, 1.5f})
-        };
+            MotorConfig(1, false, {1.5f, 0.056f, 1.5f}), MotorConfig(2, false, {1.5f, 0.056f, 1.5f}),
+            MotorConfig(3, true, {1.5f, 0.056f, 1.5f}), MotorConfig(4, true, {1.5f, 0.056f, 1.5f})};
 
         motor_controller.Init(motor_configs, kMotorNumber);
     }
@@ -64,23 +61,23 @@ TEST_F(MotorControllerTest, Init) {
     ASSERT_EQ(motor_controller.GetMotorsNumber(), kMotorNumber);
 }
 
-// Test MotorController::SetMotorRPM
-TEST_F(MotorControllerTest, SetMotorRPM) {
+// Test MotorController::SetSetpoint
+TEST_F(MotorControllerTest, SetSetpoint) {
     int channel = 1;
     int rpm = 1000;
 
     EXPECT_CALL(GetMockRCMotor(), set(channel, ::testing::_)).WillOnce(::testing::Return(0));
 
-    int result = motor_controller.SetMotorRPM(channel - 1, rpm); // Convert to 0-based index
+    int result = motor_controller.SetSetpoint(channel - 1, rpm);  // Convert to 0-based index
     ASSERT_EQ(result, 0);
 }
 
-// Test MotorController::SetMotorRPM with invalid channel
-TEST_F(MotorControllerTest, SetMotorRPMInvalidChannel) {
-    int invalid_channel = kMotorNumber + 1; // Out of range
+// Test MotorController::SetSetpoint with invalid channel
+TEST_F(MotorControllerTest, SetSetpointInvalidChannel) {
+    int invalid_channel = kMotorNumber + 1;  // Out of range
     int rpm = 1000;
 
-    int result = motor_controller.SetMotorRPM(invalid_channel, rpm);
+    int result = motor_controller.SetSetpoint(invalid_channel, rpm);
     ASSERT_EQ(result, -1);
 }
 
@@ -90,7 +87,7 @@ TEST_F(MotorControllerTest, StopMotor) {
 
     EXPECT_CALL(GetMockRCMotor(), brake(channel)).WillOnce(::testing::Return(0));
 
-    int result = motor_controller.StopMotor(channel - 1); // Convert to 0-based index
+    int result = motor_controller.StopMotor(channel - 1);  // Convert to 0-based index
     ASSERT_EQ(result, 0);
 }
 
@@ -101,7 +98,7 @@ TEST_F(MotorControllerTest, GetEncoderCounter) {
 
     EXPECT_CALL(GetMockRCEncoder(), read(channel)).WillOnce(::testing::Return(encoder_value));
 
-    int result = motor_controller.GetEncoderCounter(channel - 1); // Convert to 0-based index
+    int result = motor_controller.GetEncoderCounter(channel - 1);  // Convert to 0-based index
     ASSERT_EQ(-result, encoder_value);
 }
 

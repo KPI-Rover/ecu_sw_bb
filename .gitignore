@@ -7,3 +7,4 @@ build/*
 .vscode
 tcp-server/*
 rootfs/
+logs/
