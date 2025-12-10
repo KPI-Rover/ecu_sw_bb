@@ -36,6 +36,7 @@ KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTr
 
 bool KPIRoverECU::Start() {
     // Initialize EncoderController first
+    
     if (EncoderController::Init() != 0) {
         LOG_ERROR << "Failed to initialize EncoderController";
         return false;
@@ -66,18 +67,18 @@ bool KPIRoverECU::Start() {
     }
 
     tcp_transport_->Start();
+
     motor_controller_->Start();
+    
     LOG_DEBUG << "Starting all thread in KPIRoverECU";
-    // timerThread_ = std::thread([this] { TimerThreadFuction(this->protocol_handler_); });
+
+    timerThread_ = std::thread([this] { TimerThreadFuction(this->protocol_handler_); });
 
     processingThread_ = std::thread([this] { ProcessingThreadFunction(); });
-    // imuThread_ = std::thread([this] { IMUThreadFucntion(this->imu_controller_); });
+    
+    imuThread_ = std::thread([this] { IMUThreadFucntion(this->imu_controller_); });
+    
     LOG_DEBUG << "All thread in KPIRoverECU started";
-
-    if (!processingThread_.joinable()) {
-        LOG_ERROR << "Error creating thread";
-        return false;
-    }
 
     return true;
 }
