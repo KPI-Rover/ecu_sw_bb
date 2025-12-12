@@ -18,8 +18,10 @@ constexpr uint8_t ProtocolHanlder::kIdSetMotorSpeed;
 constexpr uint8_t ProtocolHanlder::kIdSetAllMotorsSpeed;
 constexpr uint8_t ProtocolHanlder::kIdGetEncoder;
 constexpr uint8_t ProtocolHanlder::kIdGetAllEncoders;
+constexpr uint8_t ProtocolHanlder::kIdConnectUdp;
 
-ProtocolHanlder::ProtocolHanlder(MotorController& motorDriver) : motors_controller_(motorDriver) {}
+ProtocolHanlder::ProtocolHanlder(MotorController& motorDriver, IMUController& imuController, TCPTransport& tcpTransport)
+    : motors_controller_(motorDriver), imu_controller_(imuController), tcp_transport_(tcpTransport) {}
 
 vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(const vector<uint8_t>& message) {
     LOG_INFO << "Get command: set one motor";
@@ -116,6 +118,29 @@ vector<uint8_t> ProtocolHanlder::HandleGetAllEncoders(const vector<uint8_t>& mes
     return ret_val;
 }
 
+vector<uint8_t> ProtocolHanlder::HandleConnectUdp(const vector<uint8_t>& message) {
+    LOG_INFO << "Get command: connect udp";
+    vector<uint8_t> ret_val;
+    ret_val.push_back(ProtocolHanlder::kIdConnectUdp);
+
+    int32_t port = 0;
+    memcpy(&port, &message[1], sizeof(int32_t));
+    port = static_cast<int32_t>(ntohl(port));
+
+    std::string ip = tcp_transport_.GetClientIp();
+    if (ip.empty()) {
+        LOG_ERROR << "Client IP is empty";
+        ret_val.push_back(0);  // Error
+        return ret_val;
+    }
+
+    LOG_INFO << "Connecting UDP to " << ip << ":" << port;
+    imu_controller_.ConnectUDP(ip, port);
+
+    ret_val.push_back(1);  // OK
+    return ret_val;
+}
+
 vector<uint8_t> ProtocolHanlder::HandleMessage(const vector<uint8_t>& message) {
     const uint8_t kCmdId = message[0];
     vector<uint8_t> ret_val;  // std::cout << "server get command: " <<  static_cast<int>(kCmdId);
@@ -134,6 +159,9 @@ vector<uint8_t> ProtocolHanlder::HandleMessage(const vector<uint8_t>& message) {
 
     } else if (kCmdId == ProtocolHanlder::kIdGetAllEncoders) {
         ret_val = HandleGetAllEncoders(message);
+
+    } else if (kCmdId == ProtocolHanlder::kIdConnectUdp) {
+        ret_val = HandleConnectUdp(message);
 
     } else {
         LOG_WARNING << "Symbol " << static_cast<int>(kCmdId) << " wasn't designated as command ID";

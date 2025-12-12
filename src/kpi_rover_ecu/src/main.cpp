@@ -96,6 +96,7 @@ int main(int argc, char* argv[]) {
         FLAGS_v = 1;
     } else if (log_level >= 1 && log_level <= 4) {
         FLAGS_stderrthreshold = log_level - 1;
+        FLAGS_v = 0; // Default verbosity
     } else {
         FLAGS_stderrthreshold = 0;
     }
@@ -137,10 +138,10 @@ int main(int argc, char* argv[]) {
         MotorConfig(2, true, {active_kp, active_ki, active_kd}, active_alpha),
     };
 
-    ProtocolHanlder protocol_handler(motors_processor);
     IMUController imu_controller;
     TCPTransport tcp_transport(server_address, server_portnum);
     UDPClient udp_client;
+    ProtocolHanlder protocol_handler(motors_processor, imu_controller, tcp_transport);
 
     LOG_INFO << "start ...";
 

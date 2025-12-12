@@ -69,6 +69,7 @@ bool KPIRoverECU::Start() {
     tcp_transport_->Start();
 
     motor_controller_->Start();
+    imu_controller_->Start(udp_client_);
     
     LOG_DEBUG << "Starting all thread in KPIRoverECU";
 
@@ -76,68 +77,9 @@ bool KPIRoverECU::Start() {
 
     processingThread_ = std::thread([this] { ProcessingThreadFunction(); });
     
-    imuThread_ = std::thread([this] { IMUThreadFucntion(this->imu_controller_); });
-    
     LOG_DEBUG << "All thread in KPIRoverECU started";
 
     return true;
-}
-
-void KPIRoverECU::IMUThreadFucntion(IMUController *workClass) {
-    uint16_t packet_number = 0;
-
-    std::string destination_address;
-    int destination_port = 0;
-
-    while (runningProcess_) {
-        if (destination_address.empty()) {
-            LOG_DEBUG << "Udp server address is unknown, get address from tcp server clients";
-            destination_address = tcp_transport_->GetClientIp();
-            destination_port = tcp_transport_->GetClientPort();
-            if (!destination_address.empty()) {
-                LOG_DEBUG << "Get UDP server address, initializing UDPClient";
-                udp_client_->Init(destination_address, destination_port);
-            }
-
-        } else {
-            const std::vector<float> kImuData = workClass->GetData();
-            if (!kImuData.empty()) {
-                if (packet_number == k16MaxCount) {
-                    packet_number = 0;
-                    LOG_DEBUG << "set UDP packet number to 0";
-                }
-                packet_number += 1;
-
-                LOG_DEBUG << "build UDP packet " << packet_number << " for UDP server";
-                std::vector<uint8_t> send_val;
-                send_val.push_back(workClass->GetId());
-
-                uint16_t send_packet_number = htons(packet_number);
-                auto *bytes = reinterpret_cast<uint8_t *>(&send_packet_number);
-                for (size_t i = 0; i < 2; ++i) {
-                    send_val.push_back(bytes[i]);
-                }
-
-                float insert_value = 0;
-                uint32_t value = 0;
-
-                for (const float kImuValue : kImuData) {
-                    insert_value = kImuValue;
-                    std::memcpy(&value, &insert_value, sizeof(float));
-                    value = ntohl(value);
-                    bytes = reinterpret_cast<uint8_t *>(&value);
-
-                    for (size_t j = 0; j < sizeof(uint32_t); ++j) {
-                        send_val.push_back(bytes[j]);
-                    }
-                }
-
-                LOG_DEBUG << "use UDP client to send message";
-                udp_client_->Send(send_val);
-            }
-        }
-        rc_usleep(kTimerPrecision);
-    }
 }
 
 void KPIRoverECU::TimerThreadFuction(ProtocolHanlder *workClass) {
@@ -153,7 +95,7 @@ void KPIRoverECU::TimerThreadFuction(ProtocolHanlder *workClass) {
             // command to stop all motors
             LOG_ERROR << "Send command to stop all motors";
             workClass->HandleMessage(kStopVector);
-            imu_controller_->SetDisable();
+            // imu_controller_->SetDisable(); // Do not disable IMU on timer timeout
             rc_usleep(kTimeStop * kOneSecondMicro);
         }
     }
@@ -189,10 +131,6 @@ void KPIRoverECU::Stop() {
     if (processingThread_.joinable()) {
         processingThread_.join();
         LOG_DEBUG << "main thread joined";
-    }
-    if (imuThread_.joinable()) {
-        imuThread_.join();
-        LOG_DEBUG << "IMUThread joined";
     }
 
     motor_controller_->Stop();

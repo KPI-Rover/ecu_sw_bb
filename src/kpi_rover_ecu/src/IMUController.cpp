@@ -1,15 +1,27 @@
 #include "IMUController.h"
 
+#include <arpa/inet.h>
 #include <rc/mpu.h>
+#include <rc/time.h>
 
 #include <algorithm>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <vector>
 
 #include "loggingIncludes.h"
 
-IMUController::IMUController() : data_{}, isStarted_(false), configuration_(rc_mpu_default_config()), actualData_({}) {
+IMUController::IMUController()
+    : data_{},
+      isStarted_(false),
+      isSending_(false),
+      udp_client_(nullptr),
+      configuration_(rc_mpu_default_config()),
+      actualData_({}) {
+    // Enable VLOG(1) for this file specifically
+    google::SetVLOGLevel("IMUController", 1);
+    
     configuration_.i2c_bus = kI2cBus;
     configuration_.gpio_interrupt_pin_chip = kGpioIntPinChip;
     configuration_.gpio_interrupt_pin = kGpioIntPinPin;
@@ -24,6 +36,61 @@ int IMUController::Init() {
     }
 
     return 0;
+}
+
+void IMUController::Start(UDPClient* udp_client) {
+    udp_client_ = udp_client;
+    isStarted_ = true;
+    processingThread_ = std::thread([this] { ThreadFunction(); });
+}
+
+void IMUController::ConnectUDP(std::string ip, int port) {
+    if (udp_client_ != nullptr) {
+        udp_client_->Init(ip, port);
+        isSending_ = true;
+    }
+}
+
+void IMUController::ThreadFunction() {
+    uint16_t packet_number = 0;
+
+    while (isStarted_) {
+        if (isSending_ && udp_client_ != nullptr) {
+             const std::vector<float> kImuData = GetData();
+            if (!kImuData.empty()) {
+                if (packet_number == k16MaxCount) {
+                   packet_number = 0;
+                }
+                packet_number += 1;
+
+                std::vector<uint8_t> send_val;
+                send_val.push_back(GetId());
+
+                uint16_t send_packet_number = htons(packet_number);
+                auto* bytes = reinterpret_cast<uint8_t*>(&send_packet_number);
+                for (size_t i = 0; i < 2; ++i) {
+                    send_val.push_back(bytes[i]);
+                }
+
+                float insert_value = 0;
+                uint32_t value = 0;
+
+                for (const float kImuValue : kImuData) {
+                    insert_value = kImuValue;
+                    std::memcpy(&value, &insert_value, sizeof(float));
+                    value = ntohl(value);
+                    bytes = reinterpret_cast<uint8_t*>(&value);
+
+                    for (size_t j = 0; j < sizeof(uint32_t); ++j) {
+                        send_val.push_back(bytes[j]);
+                    }
+                }
+
+                udp_client_->Send(send_val);
+            }
+        }
+        rc_usleep(kTimerPrecision);
+    }
 }
 
 void IMUController::SetEnable() { isStarted_ = true; }
@@ -89,6 +156,13 @@ std::vector<float> IMUController::GetQaternion() {
     return ret_val;
 }
 
-void IMUController::Stop() { rc_mpu_power_off(); }
+void IMUController::Stop() {
+    isStarted_ = false;
+    isSending_ = false;
+    if (processingThread_.joinable()) {
+        processingThread_.join();
+    }
+    rc_mpu_power_off();
+}
 
 uint8_t IMUController::GetId() { return kIdGetCommand; }
