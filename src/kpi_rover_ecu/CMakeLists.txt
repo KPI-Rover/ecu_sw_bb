@@ -23,6 +23,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     glog
 )
 
+# Statically link libstdc++ and libgcc to avoid version mismatch on target
+target_link_options(${PROJECT_NAME} PRIVATE -static-libgcc -static-libstdc++)
+
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

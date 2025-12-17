@@ -2,6 +2,7 @@
 #define ITRANSPORT_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 class ITransport {
@@ -14,6 +15,7 @@ class ITransport {
     virtual int Init() = 0;
     virtual void Start() = 0;
     virtual void Destroy() = 0;
+    virtual std::string GetClientIp() = 0;
     virtual ~ITransport() = default;
 
     ITransport(const ITransport&) = delete;

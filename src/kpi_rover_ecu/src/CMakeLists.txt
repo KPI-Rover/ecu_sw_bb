@@ -4,6 +4,7 @@ add_library(kpi_rover_ecu_core STATIC
     motorsController.cpp
     protocolHandler.cpp
     TCPTransport.cpp
+    SerialTransport.cpp
     motorConfig.cpp
     messageQueue.cpp
     PIDRegulator.cpp

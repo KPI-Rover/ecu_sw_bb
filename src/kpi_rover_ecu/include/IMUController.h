@@ -2,52 +2,48 @@
 #define IMUCONTROLLER_H
 
 #include <rc/mpu.h>
-
-#include <atomic>
-#include <cstddef>
-#include <cstdint>
-#include <thread>
+#include <mutex>
 #include <vector>
-
-#include "UDPClient.h"
-
-constexpr size_t kActualDataSize = 10;
 
 class IMUController {
    public:
     IMUController();
+    ~IMUController();
+
     int Init();
-    void Start(UDPClient* udp_client);
-    void ConnectUDP(std::string ip, int port);
-    void SetEnable();
-    void SetDisable();
     void Stop();
-    std::vector<float> GetData();
-    uint8_t GetId();
+
+    std::vector<float> GetAccel();
+    std::vector<float> GetGyro();
+    std::vector<float> GetQaternion();
+    std::vector<float> GetMag();
 
    private:
-    const int kIdGetCommand = 0x06;
+    // Constants
     const int kI2cBus = 2;
     const int kGpioIntPinChip = 3;
     const int kGpioIntPinPin = 21;
     const int kDmpSampleRate = 100;
     const int kEnableMagnetometer = 1;
-    const int kTimerPrecision = 200000;  // 20ms
-    const uint16_t k16MaxCount = 65535;
 
-    std::atomic<bool> isStarted_;
-    std::atomic<bool> isSending_;
-    std::thread processingThread_;
-    UDPClient* udp_client_;
+    // Singleton instance for C-style callback
+    static IMUController* instance_;
 
     rc_mpu_config_t configuration_;
-    std::vector<float> actualData_;
-    rc_mpu_data_t data_;
+    rc_mpu_data_t data_; // Internal buffer for rc_mpu library
 
-    std::vector<float> GetAccel();
-    std::vector<float> GetGyro();
-    std::vector<float> GetQaternion();
-    void ThreadFunction();
+    // Thread-safe cached data
+    struct CachedData {
+        float accel[3];
+        float gyro[3];
+        float quat[4];
+        float mag[3];
+    } cached_data_;
+    
+    mutable std::mutex data_mutex_;
+
+    static void DMPCallbackWrapper();
+    void OnDMPCallback();
 };
 
 #endif

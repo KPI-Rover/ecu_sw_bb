@@ -13,14 +13,15 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
 
 #include "IMUController.h"
 #include "KPIRoverECU.h"
+#include "SerialTransport.h"
 #include "TCPTransport.h"
-#include "UDPClient.h"
 #include "loggingIncludes.h"
 #include "motorConfig.h"
 #include "motorsController.h"
@@ -49,10 +50,12 @@ int main(int argc, char* argv[]) {
     bool has_coef_i = false;
     bool has_coef_d = false;
     std::string logging_directory = "./log";
+    std::string serial_device = "";
+    int baud_rate = 115200;
 
     // Command-line options
     int opt = 0;
-    while ((opt = getopt(argc, argv, "a:p:l:o:q:w:e:")) != -1) {
+    while ((opt = getopt(argc, argv, "a:p:l:o:q:w:e:s:b:")) != -1) {
         switch (opt) {
             case 'a':
                 server_address = optarg;
@@ -78,12 +81,25 @@ int main(int argc, char* argv[]) {
                 coef_d = strtof(optarg, nullptr);
                 has_coef_d = true;
                 break;
+            case 's':
+                serial_device = optarg;
+                break;
+            case 'b':
+                baud_rate = strtol(optarg, nullptr, kBase);
+                break;
             default:
-                std::cout << "Usage: " << argv[0];
-                std::cout << " [-a server_address] ";
-                std::cout << " [-p server_portnum]";
-                std::cout << " [-l log level]";
-                std::cout << " [-o output direcotry. Example \"./log\" ]";
+                std::cout << "Usage: " << argv[0] << " [OPTIONS]\n\n";
+                std::cout << "Options:\n";
+                std::cout << "  -a <address>      Server IP address (default: 0.0.0.0)\n";
+                std::cout << "  -p <port>         Server port number (default: 5500)\n";
+                std::cout << "  -l <level>        Log level (0=Debug, 1=Info, 2=Warning, 3=Error) (default: 1)\n";
+                std::cout << "  -o <dir>          Output directory for log files (default: ./log)\n";
+                std::cout << "  -s <device>       Serial device path (e.g., /dev/ttyO1). If not set, TCP is used.\n";
+                std::cout << "  -b <baud>         Serial baud rate (default: 115200)\n";
+                std::cout << "  -q <kp>           PID Kp coefficient (default: 8.0)\n";
+                std::cout << "  -w <ki>           PID Ki coefficient (default: 2.0)\n";
+                std::cout << "  -e <kd>           PID Kd coefficient (default: 0.01)\n";
+                std::cout << "\n";
                 return EXIT_FAILURE;
         }
     }
@@ -139,14 +155,18 @@ int main(int argc, char* argv[]) {
     };
 
     IMUController imu_controller;
-    TCPTransport tcp_transport(server_address, server_portnum);
-    UDPClient udp_client;
-    ProtocolHanlder protocol_handler(motors_processor, imu_controller, tcp_transport);
+    std::unique_ptr<ITransport> transport;
+    if (!serial_device.empty()) {
+        transport = std::unique_ptr<ITransport>(new SerialTransport(serial_device, baud_rate));
+    } else {
+        transport = std::unique_ptr<ITransport>(new TCPTransport(server_address, server_portnum));
+    }
+    ProtocolHanlder protocol_handler(motors_processor, imu_controller, *transport);
 
     LOG_INFO << "start ...";
 
     // Pass configuration to KPIRoverECU, Init functions will be called from Start()
-    KPIRoverECU kpi_rover_ecu(&protocol_handler, &tcp_transport, &udp_client, &imu_controller, &motors_processor,
+    KPIRoverECU kpi_rover_ecu(&protocol_handler, transport.get(), &imu_controller, &motors_processor,
                               kShassisVector, kMotorNumber, server_address, server_portnum);
 
     if (!kpi_rover_ecu.Start()) {

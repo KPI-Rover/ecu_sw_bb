@@ -7,8 +7,7 @@
 #include <vector>
 
 #include "IMUController.h"
-#include "TCPTransport.h"
-#include "UDPClient.h"
+#include "ITransport.h"
 #include "motorConfig.h"
 #include "motorsController.h"
 #include "protocolHandler.h"
@@ -24,20 +23,20 @@ class KPIRoverECU {
    public:
     void TimerThreadFuction(ProtocolHanlder *workClass);
     void ProcessingThreadFunction();
+    void DebugThreadFunction();
     void IMUThreadFucntion(IMUController *workClass);
 
-    KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, UDPClient *_udpClient,
+        KPIRoverECU(ProtocolHanlder *_protocolHandler, ITransport *_transport,
                 IMUController *_imuController, MotorController *_motorController,
-                const std::vector<MotorConfig> &_motorConfigs, uint8_t _motorNumber, const std::string &_serverAddress,
-                int _serverPort);
+                const std::vector<MotorConfig> &_motorConfigs, int _motorNumber, const char *_server_address,
+                int _server_portnum);
     bool Start();
     void Stop();
 
    private:
     ProtocolHanlder *protocol_handler_;
-    TCPTransport *tcp_transport_;
+    ITransport *transport_;
     IMUController *imu_controller_;
-    UDPClient *udp_client_;
     MotorController *motor_controller_;
     std::vector<MotorConfig> motor_configs_;
     uint8_t motor_number_;
@@ -45,6 +44,7 @@ class KPIRoverECU {
     int server_port_;
     std::thread timerThread_;
     std::thread processingThread_;
+    std::thread debugThread_;
     std::thread imuThread_;
     std::atomic<bool> runningProcess_;
     std::atomic<bool> runningState_;

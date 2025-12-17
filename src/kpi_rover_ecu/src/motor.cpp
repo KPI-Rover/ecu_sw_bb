@@ -37,7 +37,7 @@ Motor::Motor(int assigned_number, bool is_inverted, std::array<float, 3> _coefic
 }
 
 int Motor::SetSetpoint(int newRPM) {
-    LOG_DEBUG << "Motor::SetSetpoint(" << newRPM << ")";
+    LOG_INFO << "Motor::SetSetpoint(" << newRPM << ")";
 
     if (newRPM > kMaxRpm) {
         LOG_WARNING << " RPM out of range for motor" << motorNumber_;
