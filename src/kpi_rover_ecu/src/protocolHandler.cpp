@@ -4,7 +4,9 @@
 
 #include <cstdint>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 #include "loggingIncludes.h"
@@ -18,10 +20,10 @@ constexpr uint8_t ProtocolHanlder::kIdSetMotorSpeed;
 constexpr uint8_t ProtocolHanlder::kIdSetAllMotorsSpeed;
 constexpr uint8_t ProtocolHanlder::kIdGetEncoder;
 constexpr uint8_t ProtocolHanlder::kIdGetAllEncoders;
-constexpr uint8_t ProtocolHanlder::kIdConnectUdp;
+constexpr uint8_t ProtocolHanlder::kIdGetImu;
 
-ProtocolHanlder::ProtocolHanlder(MotorController& motorDriver, IMUController& imuController, TCPTransport& tcpTransport)
-    : motors_controller_(motorDriver), imu_controller_(imuController), tcp_transport_(tcpTransport) {}
+ProtocolHanlder::ProtocolHanlder(MotorController& motorDriver, IMUController& imuController, ITransport& transport)
+    : motors_controller_(motorDriver), imu_controller_(imuController), transport_(transport) {}
 
 vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(const vector<uint8_t>& message) {
     LOG_INFO << "Get command: set one motor";
@@ -40,6 +42,7 @@ vector<uint8_t> ProtocolHanlder::HandleSetMotorSpeed(const vector<uint8_t>& mess
     LOG_DEBUG << "Build response ";
     // buffer.assign(BUFFERSIZE, 0);
     ret_val.push_back(ProtocolHanlder::kIdSetMotorSpeed);
+    ret_val.push_back(0);  // Status OK
 
     return ret_val;
 }
@@ -61,6 +64,7 @@ vector<uint8_t> ProtocolHanlder::HandleGetApiVersion(const vector<uint8_t>& mess
 
 vector<uint8_t> ProtocolHanlder::HandleSetAllMotorsSpeed(const vector<uint8_t>& message) {
     LOG_INFO << "Get command: set all motors ";
+
     std::vector<int32_t> motors_rpm_arr(motors_controller_.GetMotorsNumber(), 0);
     vector<uint8_t> ret_val;
 
@@ -81,6 +85,7 @@ vector<uint8_t> ProtocolHanlder::HandleSetAllMotorsSpeed(const vector<uint8_t>& 
     }
     LOG_DEBUG << "Build response ";
     ret_val.push_back(ProtocolHanlder::kIdSetAllMotorsSpeed);
+    ret_val.push_back(0);  // Status OK
     return ret_val;
 }
 
@@ -118,30 +123,76 @@ vector<uint8_t> ProtocolHanlder::HandleGetAllEncoders(const vector<uint8_t>& mes
     return ret_val;
 }
 
-vector<uint8_t> ProtocolHanlder::HandleConnectUdp(const vector<uint8_t>& message) {
-    LOG_INFO << "Get command: connect udp";
+static void appendFloatLittleEndian(std::vector<uint8_t>& vec, float value) {
+    uint32_t val_as_int;
+    std::memcpy(&val_as_int, &value, sizeof(float));
+    
+    // Explicitly pack as Little Endian (LSB first)
+    uint8_t bytes[4];
+    bytes[0] = (val_as_int >> 0) & 0xFF;
+    bytes[1] = (val_as_int >> 8) & 0xFF;
+    bytes[2] = (val_as_int >> 16) & 0xFF;
+    bytes[3] = (val_as_int >> 24) & 0xFF;
+    
+    vec.insert(vec.end(), bytes, bytes + 4);
+}
+
+vector<uint8_t> ProtocolHanlder::HandleGetImu(const vector<uint8_t>& message) {
+    LOG_INFO << "Get command: get imu";
     vector<uint8_t> ret_val;
-    ret_val.push_back(ProtocolHanlder::kIdConnectUdp);
+    ret_val.push_back(ProtocolHanlder::kIdGetImu);
 
-    int32_t port = 0;
-    memcpy(&port, &message[1], sizeof(int32_t));
-    port = static_cast<int32_t>(ntohl(port));
+    // Get Data from IMU Controller
+    std::vector<float> accel = imu_controller_.GetAccel();
+    std::vector<float> gyro = imu_controller_.GetGyro();
+    std::vector<float> mag = imu_controller_.GetMag();
+    std::vector<float> quat = imu_controller_.GetQaternion();
 
-    std::string ip = tcp_transport_.GetClientIp();
-    if (ip.empty()) {
-        LOG_ERROR << "Client IP is empty";
-        ret_val.push_back(0);  // Error
+    // Check if we have valid data (all vectors should be populated)
+    if (accel.size() < 3 || gyro.size() < 3 || mag.size() < 3 || quat.size() < 4) {
+        LOG_WARNING << "IMU data not ready or incomplete";
+        // Fill with zeros ? or return empty? 
+        // Protocol specifies format, so filling with zeros is safer for parsing
+        for (int i = 0; i < 13; ++i) appendFloatLittleEndian(ret_val, 0.0f);
         return ret_val;
     }
 
-    LOG_INFO << "Connecting UDP to " << ip << ":" << port;
-    imu_controller_.ConnectUDP(ip, port);
+    // Append Accel (X, Y, Z)
+    appendFloatLittleEndian(ret_val, accel[0]);
+    appendFloatLittleEndian(ret_val, accel[1]);
+    appendFloatLittleEndian(ret_val, accel[2]);
 
-    ret_val.push_back(1);  // OK
+    // Append Gyro (X, Y, Z)
+    appendFloatLittleEndian(ret_val, gyro[0]);
+    appendFloatLittleEndian(ret_val, gyro[1]);
+    appendFloatLittleEndian(ret_val, gyro[2]);
+
+    // Append Mag (X, Y, Z)
+    appendFloatLittleEndian(ret_val, mag[0]);
+    appendFloatLittleEndian(ret_val, mag[1]);
+    appendFloatLittleEndian(ret_val, mag[2]);
+
+    // Append Quat (W, X, Y, Z)
+    appendFloatLittleEndian(ret_val, quat[0]); // W
+    appendFloatLittleEndian(ret_val, quat[1]); // X
+    appendFloatLittleEndian(ret_val, quat[2]); // Y
+    appendFloatLittleEndian(ret_val, quat[3]); // Z
+
     return ret_val;
 }
 
 vector<uint8_t> ProtocolHanlder::HandleMessage(const vector<uint8_t>& message) {
+    std::stringstream ss;
+    for (const auto& byte : message) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+    }
+    LOG_INFO << "Received data: " << ss.str();
+
+    if (message.empty()) {
+        LOG_WARNING << "Received empty message";
+        return {};
+    }
+
     const uint8_t kCmdId = message[0];
     vector<uint8_t> ret_val;  // std::cout << "server get command: " <<  static_cast<int>(kCmdId);
 
@@ -160,8 +211,8 @@ vector<uint8_t> ProtocolHanlder::HandleMessage(const vector<uint8_t>& message) {
     } else if (kCmdId == ProtocolHanlder::kIdGetAllEncoders) {
         ret_val = HandleGetAllEncoders(message);
 
-    } else if (kCmdId == ProtocolHanlder::kIdConnectUdp) {
-        ret_val = HandleConnectUdp(message);
+    } else if (kCmdId == ProtocolHanlder::kIdGetImu) {
+        ret_val = HandleGetImu(message);
 
     } else {
         LOG_WARNING << "Symbol " << static_cast<int>(kCmdId) << " wasn't designated as command ID";

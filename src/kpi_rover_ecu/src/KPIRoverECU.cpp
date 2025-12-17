@@ -6,25 +6,27 @@
 
 #include <csignal>
 #include <cstdint>
+#include <cstdlib>
+#include <ctime>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include "EncoderController.h"
 #include "IMUController.h"
-#include "TCPTransport.h"
-#include "UDPClient.h"
+#include "ITransport.h"
 #include "loggingIncludes.h"
 #include "protocolHandler.h"
 
-KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, TCPTransport *_tcpTransport, UDPClient *_udpClient,
+KPIRoverECU::KPIRoverECU(ProtocolHanlder *_protocolHandler, ITransport *_transport,
                          IMUController *_imuController, MotorController *_motorController,
-                         const std::vector<MotorConfig> &_motorConfigs, uint8_t _motorNumber,
-                         const std::string &_serverAddress, int _serverPort)
+                         const std::vector<MotorConfig> &_motorConfigs, int _motorNumber,
+                         const char *_serverAddress, int _serverPort)
     : protocol_handler_(_protocolHandler),
-      tcp_transport_(_tcpTransport),
+      transport_(_transport),
       imu_controller_(_imuController),
-      udp_client_(_udpClient),
       motor_controller_(_motorController),
       motor_configs_(_motorConfigs),
       motor_number_(_motorNumber),
@@ -57,25 +59,25 @@ bool KPIRoverECU::Start() {
         return false;
     }
 
-    // Initialize TCP Transport
-    if (tcp_transport_->Init() == -1) {
-        LOG_ERROR << "Error creating socket";
+    // Initialize Transport
+    if (transport_->Init() == -1) {
+        LOG_ERROR << "Error creating transport";
         imu_controller_->Stop();
         motor_controller_->Destroy();
         EncoderController::Destroy();
         return false;
     }
 
-    tcp_transport_->Start();
+    transport_->Start();
 
     motor_controller_->Start();
-    imu_controller_->Start(udp_client_);
     
     LOG_DEBUG << "Starting all thread in KPIRoverECU";
 
-    timerThread_ = std::thread([this] { TimerThreadFuction(this->protocol_handler_); });
+    //timerThread_ = std::thread([this] { TimerThreadFuction(this->protocol_handler_); });
 
     processingThread_ = std::thread([this] { ProcessingThreadFunction(); });
+    //debugThread_ = std::thread([this] { DebugThreadFunction(); });
     
     LOG_DEBUG << "All thread in KPIRoverECU started";
 
@@ -105,16 +107,22 @@ void KPIRoverECU::ProcessingThreadFunction() {
     LOG_DEBUG << "start cycle in main thread";
     while (runningProcess_) {
         std::vector<uint8_t> message;
-        if (tcp_transport_->Receive(message)) {
-            LOG_DEBUG << "TCP packet received, processing it";
-            imu_controller_->SetEnable();
+        if (transport_->Receive(message)) {
+            LOG_DEBUG << "Packet received, processing it";
 
             counter_.store(GetCounter());
             LOG_DEBUG << "set timer counter to GetCounter()";
             const std::vector<uint8_t> kReturnMessage = protocol_handler_->HandleMessage(message);
-            LOG_DEBUG << "get TCP response";
-            tcp_transport_->Send(kReturnMessage);
-            LOG_DEBUG << "Send TCP response";
+            
+            std::stringstream ss;
+            for (const auto& byte : kReturnMessage) {
+                ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+            }
+            LOG_INFO << "Sending response: " << ss.str();
+
+            LOG_DEBUG << "get response";
+            transport_->Send(kReturnMessage);
+            LOG_DEBUG << "Send response";
         }
     }
 }
@@ -132,14 +140,43 @@ void KPIRoverECU::Stop() {
         processingThread_.join();
         LOG_DEBUG << "main thread joined";
     }
+    if (debugThread_.joinable()) {
+        debugThread_.join();
+        LOG_DEBUG << "debugThread_ joined";
+    }
 
     motor_controller_->Stop();
     LOG_INFO << "destroying drivers";
     motor_controller_->Destroy();
     imu_controller_->Stop();
-    tcp_transport_->Destroy();
-    udp_client_->Destroy();
+    transport_->Destroy();
     EncoderController::Destroy();
 }
 
 int KPIRoverECU::GetCounter() { return (kTimeStop * kOneSecondMicro) / kTimerPrecision; }
+
+void KPIRoverECU::DebugThreadFunction() {
+    std::srand(std::time(nullptr));
+    uint32_t debug_counter = 0;
+    while (runningProcess_) {
+        std::vector<uint8_t> packet;
+        packet.reserve(50);
+        packet.push_back(0xBE);
+        packet.push_back(0xDA);
+        packet.push_back((debug_counter >> 24) & 0xFF);
+        packet.push_back((debug_counter >> 16) & 0xFF);
+        packet.push_back((debug_counter >> 8) & 0xFF);
+        packet.push_back(debug_counter & 0xFF);
+
+        // Fill the rest with random values (random length from 5 to 100)
+        int random_length = 5 + (std::rand() % 96); // 5 to 100
+        for (int i = 0; i < random_length; ++i) {
+            packet.push_back(static_cast<uint8_t>(std::rand() & 0xFF));
+        }
+
+        transport_->Send(packet);
+        
+        debug_counter++;
+        rc_usleep(10000); // 50ms
+    }
+}
